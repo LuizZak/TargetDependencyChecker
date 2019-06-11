@@ -81,7 +81,8 @@ public enum DirectedGraphVisitElement<E: DirectedGraphEdge, N: DirectedGraphNode
     
     public var node: N {
         switch self {
-        case .root(let node), .edge(_, let node):
+        case .root(let node),
+             .edge(_, let node):
             return node
         }
     }

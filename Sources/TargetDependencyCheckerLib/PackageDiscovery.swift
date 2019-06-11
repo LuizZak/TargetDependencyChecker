@@ -1,10 +1,10 @@
 import Foundation
 
 class PackageDiscovery {
-    let packagePath: String
+    let packageUrl: URL
     
-    init(packagePath: String = PackageDiscovery.workDirectory) {
-        self.packagePath = packagePath
+    init(packageUrl: URL = PackageDiscovery.workDirectory) {
+        self.packageUrl = packageUrl
     }
     
     func package() throws -> Package {
@@ -18,6 +18,10 @@ class PackageDiscovery {
         }
         
         return try JSONDecoder().decode(Package.self, from: data)
+    }
+    
+    func packageManager() throws -> PackageManager {
+        try PackageManager(package: package(), packageRootUrl: packageUrl)
     }
     
     func dumpPackageJSON() throws -> JSON {
@@ -55,13 +59,13 @@ extension PackageDiscovery {
         return try! process.readStandardOutput().spm_chomp()
     }()
     
-    static var workDirectory: String {
+    static var workDirectory: URL {
         var buffer: [Int8] = Array(repeating: 0, count: 1024)
         guard getcwd(&buffer, buffer.count) != nil else {
             fatalError("Error fetching work directory")
         }
         
-        return String(cString: buffer)
+        return URL(fileURLWithPath: String(cString: buffer))
     }
 }
 

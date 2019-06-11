@@ -22,9 +22,9 @@ struct Target: Decodable, Hashable {
         try path = container.decodeIfPresent(String.self, forKey: .path)
         try type = container.decode(TargetType.self, forKey: .type)
         
-        let dep = try container.decode(DependenciesArray.self, forKey: .dependencies)
+        let dep = try container.decode([DependenciesArray].self, forKey: .dependencies)
         
-        dependencies = dep.byName.map(TargetDependency.init)
+        dependencies = dep.flatMap { $0.byName.map(TargetDependency.init) }
     }
     
     enum TargetType: String, Decodable {

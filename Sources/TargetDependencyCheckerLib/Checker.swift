@@ -4,8 +4,10 @@ public enum Checker {
     public static func main() throws {
         let packageDiscovery = PackageDiscovery()
         
-        let package = try packageDiscovery.package()
+        let packageManager = try packageDiscovery.packageManager()
         
-        print(package.targets)
+        for target in packageManager.targets {
+            print(packageManager.sourcePath(for: target)!.path)
+        }
     }
 }
