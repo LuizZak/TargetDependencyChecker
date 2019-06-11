@@ -36,7 +36,8 @@ public enum Checker {
         
         let relativePath = file.path.path.replacingOccurrences(of: rootPath, with: "").drop(while: { $0 == "/" })
         
-        let fileManager = SourceFileManager(sourceFile: file)
+        let fileManager = SourceFileManager(sourceFile: file,
+                                            fileManagerDelegate: DiskFileManagerDelegate())
         
         let importedFrameworks = try fileManager.importedFrameworks()
         
@@ -48,7 +49,7 @@ public enum Checker {
             if !dependencyGraph.hasPath(from: frameworkTarget, to: target) {
                 print("""
                     Warning: Found import declaration for framework \(framework) in target \(target.name) \
-                    in file \(relativePath), but dependency is not declared in Package.swift manifest, either \
+                    in file \(relativePath), but dependency is not declared in Package.swift manifest, neither \
                     directly or indirectly.
                     """)
             }

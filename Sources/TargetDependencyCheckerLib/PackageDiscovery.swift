@@ -4,6 +4,7 @@ class PackageDiscovery {
     let packageUrl: URL
     
     init(packageUrl: URL = PackageDiscovery.workDirectory) {
+        
         self.packageUrl = packageUrl
     }
     
@@ -21,7 +22,9 @@ class PackageDiscovery {
     }
     
     func packageManager() throws -> PackageManager {
-        try PackageManager(package: package(), packageRootUrl: packageUrl)
+        try PackageManager(package: package(),
+                           packageRootUrl: packageUrl,
+                           fileManagerDelegate: DiskFileManagerDelegate())
     }
     
     func dumpPackageJSON() throws -> JSON {

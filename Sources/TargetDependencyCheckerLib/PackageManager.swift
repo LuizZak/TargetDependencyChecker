@@ -3,15 +3,21 @@ import Foundation
 class PackageManager {
     let package: Package
     let packageRootUrl: URL
+    let fileManagerDelegate: FileManagerDelegate
+    
     var _dependencyGraph: DependencyGraph?
     
     var targets: [Target] {
         return package.targets
     }
     
-    init(package: Package, packageRootUrl: URL) {
+    init(package: Package,
+         packageRootUrl: URL,
+         fileManagerDelegate: FileManagerDelegate) {
+        
         self.package = package
         self.packageRootUrl = packageRootUrl
+        self.fileManagerDelegate = fileManagerDelegate
     }
     
     func target(withName name: String) -> Target? {
@@ -48,7 +54,7 @@ class PackageManager {
                 .map(URL.init(fileURLWithPath:))
                 .compactMap { URL(string: target.name, relativeTo: $0) }
         
-        return mappedUrls.first(where: isDirectory(_:))
+        return mappedUrls.first(where: fileManagerDelegate.isDirectory(_:))
     }
     
     func sourceFiles(for target: Target) throws -> [SourceFile] {
@@ -56,12 +62,7 @@ class PackageManager {
             throw Error.invalidTargetUrl
         }
         
-        let files =
-            try FileManager
-                .default
-                .contentsOfDirectory(at: path,
-                                     includingPropertiesForKeys: nil,
-                                     options: [.skipsHiddenFiles])
+        let files = try fileManagerDelegate.allFilesInPath(path)
         
         return files.filter({ $0.pathExtension == "swift" }).map(SourceFile.init)
     }
@@ -77,9 +78,4 @@ private extension PackageManager {
     
     /// Predefined test directories, in order of preference.
     static let predefinedTestDirectories = ["Tests", "Sources", "Source", "src", "srcs"]
-}
-
-private func isDirectory(_ url: URL) -> Bool {
-    var isDir: ObjCBool = false
-    return FileManager.default.fileExists(atPath: url.path, isDirectory: &isDir) && isDir.boolValue
 }

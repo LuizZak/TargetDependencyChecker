@@ -3,13 +3,19 @@ import SwiftSyntax
 
 class SourceFileManager {
     let sourceFile: SourceFile
+    let fileManagerDelegate: FileManagerDelegate
     
-    init(sourceFile: SourceFile) {
+    init(sourceFile: SourceFile, fileManagerDelegate: FileManagerDelegate) {
         self.sourceFile = sourceFile
+        self.fileManagerDelegate = fileManagerDelegate
     }
     
     func importedFrameworks() throws -> [String] {
-        let file = try SyntaxParser.parse(sourceFile.path)
+        let source =
+            try fileManagerDelegate
+                .contentsOfFile(at: sourceFile.path, encoding: .utf8)
+        
+        let file = try SyntaxParser.parse(source: source)
         var visitor = ImportVisitor()
         file.walk(&visitor)
         
