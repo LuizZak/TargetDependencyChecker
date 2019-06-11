@@ -65,9 +65,7 @@ public enum Checker {
                         target: target,
                         file: file,
                         relativePath: relativePath)
-            }
-            
-            if options.warnIndirectDependencies && !dependencyGraph.hasEdge(from: frameworkTarget, to: target) {
+            } else if options.warnIndirectDependencies && !dependencyGraph.hasEdge(from: frameworkTarget, to: target) {
                 diagnosticsTarget
                     .reportNonDirectDependencyImport(
                         importDecl: importDecl,
