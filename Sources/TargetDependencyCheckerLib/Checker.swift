@@ -3,14 +3,23 @@ import Foundation
 public enum Checker {
     public struct Options {
         public var warnIndirectDependencies: Bool
+        public var packageDirectory: URL?
+        public var outputType: OutputType
         
-        public init(warnIndirectDependencies: Bool = false) {
+        public init(warnIndirectDependencies: Bool = false,
+                    packageDirectory: URL? = nil,
+                    outputType: OutputType = .terminal) {
+            
             self.warnIndirectDependencies = warnIndirectDependencies
+            self.packageDirectory = packageDirectory
+            self.outputType = outputType
         }
     }
     
     public static func main(options: Options = Options()) throws {
-        let packageDiscovery = PackageDiscovery()
+        let url = options.packageDirectory ?? PackageDiscovery.workDirectory
+        
+        let packageDiscovery = PackageDiscovery(packageUrl: url)
         
         let packageManager = try packageDiscovery.packageManager()
         
@@ -31,37 +40,55 @@ public enum Checker {
                         packageManager: PackageManager,
                         options: Options) throws {
         
+        let diagnosticsTarget = options.outputType.diagnosticsOutput
+        
         let rootPath = packageManager.packageRootUrl.path
         let dependencyGraph = try packageManager.dependencyGraph()
         
-        let relativePath = file.path.path.replacingOccurrences(of: rootPath, with: "").drop(while: { $0 == "/" })
+        let relativePath =
+            String(file.path.path.replacingOccurrences(of: rootPath, with: "").drop(while: { $0 == "/" }))
         
         let fileManager = SourceFileManager(sourceFile: file,
                                             fileManagerDelegate: DiskFileManagerDelegate())
         
-        let importedFrameworks = try fileManager.importedFrameworks()
+        let importedFrameworkDeclarations = try fileManager.importedFrameworks()
         
-        for framework in importedFrameworks {
-            guard let frameworkTarget = packageManager.target(withName: framework) else {
+        for importDecl in importedFrameworkDeclarations {
+            guard let frameworkTarget = packageManager.target(withName: importDecl.frameworkName) else {
                 continue
             }
             
             if !dependencyGraph.hasPath(from: frameworkTarget, to: target) {
-                print("""
-                    Warning: Found import declaration for framework \(framework) in target \(target.name) \
-                    in file \(relativePath), but dependency is not declared in Package.swift manifest, neither \
-                    directly or indirectly.
-                    """)
+                diagnosticsTarget
+                    .reportNonDependencyImport(
+                        importDecl: importDecl,
+                        target: target,
+                        file: file,
+                        relativePath: relativePath)
             }
             
             if options.warnIndirectDependencies && !dependencyGraph.hasEdge(from: frameworkTarget, to: target) {
-                print("""
-                    Indirect-dependency warning: Found import declaration for \
-                    framework \(framework) in target \(target.name) in file \
-                    \(relativePath), but dependency is not declared explicitly \
-                    in Package.swift manifest.
-                    """)
+                diagnosticsTarget
+                    .reportNonDirectDependencyImport(
+                        importDecl: importDecl,
+                        target: target,
+                        file: file,
+                        relativePath: relativePath)
             }
+        }
+    }
+}
+
+public enum OutputType {
+    case terminal
+    case xcode
+    
+    var diagnosticsOutput: DiagnosticsOutput {
+        switch self {
+        case .terminal:
+            return TerminalDiagnosticsOutput()
+        case .xcode:
+            return XcodeDiagnosticsOutput()
         }
     }
 }

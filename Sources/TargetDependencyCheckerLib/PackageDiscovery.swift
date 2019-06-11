@@ -9,7 +9,7 @@ class PackageDiscovery {
     }
     
     func package() throws -> Package {
-        let process = makeSwiftProcess()
+        let process = makeSwiftProcessAtPackagePath()
         process.arguments = ["package", "dump-package"]
         
         let result = try process.readStandardOutput()
@@ -28,7 +28,7 @@ class PackageDiscovery {
     }
     
     func dumpPackageJSON() throws -> JSON {
-        let process = makeSwiftProcess()
+        let process = makeSwiftProcessAtPackagePath()
         process.arguments = ["package", "dump-package"]
         
         let result = try process.readStandardOutput()
@@ -38,9 +38,15 @@ class PackageDiscovery {
         return json
     }
     
-    private func makeSwiftProcess() -> Process {
+    private func makeSwiftProcessAtPackagePath() -> Process {
         let process = Process()
         process.launchPath = PackageDiscovery.swiftCompilerPath
+        
+        if #available(OSX 10.13, *) {
+            process.currentDirectoryURL = packageUrl
+        } else {
+            process.currentDirectoryPath = packageUrl.path
+        }
         
         return process
     }

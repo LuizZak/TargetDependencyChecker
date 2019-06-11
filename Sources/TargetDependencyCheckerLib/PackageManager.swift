@@ -49,10 +49,14 @@ class PackageManager {
             sourceDirectories = PackageManager.predefinedTestDirectories
         }
         
-        let mappedUrls =
+        let mappedUrls: [URL] =
             sourceDirectories
-                .map(URL.init(fileURLWithPath:))
-                .compactMap { URL(string: target.name, relativeTo: $0) }
+                .map { path in
+                    packageRootUrl.appendingPathComponent(path, isDirectory: true)
+                }
+                .compactMap {
+                    return URL(string: target.name, relativeTo: $0)
+                }
         
         return mappedUrls.first(where: fileManagerDelegate.isDirectory(_:))
     }
