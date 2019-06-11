@@ -7,7 +7,20 @@ class PackageDiscovery {
         self.packagePath = packagePath
     }
     
-    func dumpPackage() throws -> JSON {
+    func package() throws -> Package {
+        let process = makeSwiftProcess()
+        process.arguments = ["package", "dump-package"]
+        
+        let result = try process.readStandardOutput()
+        
+        guard let data = result.data(using: .utf8) else {
+            throw JSON.Error.invalidJsonString
+        }
+        
+        return try JSONDecoder().decode(Package.self, from: data)
+    }
+    
+    func dumpPackageJSON() throws -> JSON {
         let process = makeSwiftProcess()
         process.arguments = ["package", "dump-package"]
         
@@ -18,7 +31,7 @@ class PackageDiscovery {
         return json
     }
     
-    func makeSwiftProcess() -> Process {
+    private func makeSwiftProcess() -> Process {
         let process = Process()
         process.launchPath = PackageDiscovery.swiftCompilerPath
         
@@ -28,7 +41,7 @@ class PackageDiscovery {
 
 extension PackageDiscovery {
     /// Path to the Swift compiler.
-    static let swiftCompilerPath: String = {
+    private static let swiftCompilerPath: String = {
         let process = Process()
         
         #if os(macOS)
