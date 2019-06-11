@@ -9,6 +9,9 @@ func main() throws {
     if arguments.contains("--warn-indirect-dependencies") {
         options.warnIndirectDependencies = true
     }
+    if arguments.contains("--warn-once-per-framework") {
+        options.warnOncePerFramework = true
+    }
     if let index = arguments.firstIndex(of: "--package-path") {
         if arguments.count <= index {
             print("error: expected path for framework after --package-path")

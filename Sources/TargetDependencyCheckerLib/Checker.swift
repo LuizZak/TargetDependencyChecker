@@ -3,14 +3,17 @@ import Foundation
 public enum Checker {
     public struct Options {
         public var warnIndirectDependencies: Bool
+        public var warnOncePerFramework: Bool
         public var packageDirectory: URL?
         public var outputType: OutputType
         
         public init(warnIndirectDependencies: Bool = false,
+                    warnOncePerFramework: Bool = false,
                     packageDirectory: URL? = nil,
                     outputType: OutputType = .terminal) {
             
             self.warnIndirectDependencies = warnIndirectDependencies
+            self.warnOncePerFramework = warnOncePerFramework
             self.packageDirectory = packageDirectory
             self.outputType = outputType
         }
@@ -23,6 +26,8 @@ public enum Checker {
         
         let packageManager = try packageDiscovery.packageManager()
         
+        var visitedImports: Set<ImportVisit> = []
+        
         for target in packageManager.targets {
             let files = try packageManager.sourceFiles(for: target)
             
@@ -30,7 +35,8 @@ public enum Checker {
                 try analyze(file: file,
                             target: target,
                             packageManager: packageManager,
-                            options: options)
+                            options: options,
+                            visitedImports: &visitedImports)
             }
         }
     }
@@ -38,7 +44,8 @@ public enum Checker {
     static func analyze(file: SourceFile,
                         target: Target,
                         packageManager: PackageManager,
-                        options: Options) throws {
+                        options: Options,
+                        visitedImports: inout Set<ImportVisit>) throws {
         
         let diagnosticsTarget = options.outputType.diagnosticsOutput
         
@@ -58,6 +65,13 @@ public enum Checker {
                 continue
             }
             
+            if options.warnOncePerFramework {
+                let importVisit = ImportVisit(framework: importDecl.frameworkName, target: target)
+                if !visitedImports.insert(importVisit).inserted {
+                    continue
+                }
+            }
+            
             if !dependencyGraph.hasPath(from: frameworkTarget, to: target) {
                 diagnosticsTarget
                     .reportNonDependencyImport(
@@ -74,6 +88,11 @@ public enum Checker {
                         relativePath: relativePath)
             }
         }
+    }
+    
+    struct ImportVisit: Hashable {
+        var framework: String
+        var target: Target
     }
 }
 
