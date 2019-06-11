@@ -62,13 +62,15 @@ public protocol DirectedGraph {
     @inlinable
     func allNodesConnected(to node: Node) -> [Node]
     
-    /// Performs a depth-first visiting of this directed graph
+    /// Performs a depth-first visiting of this directed graph, finishing once
+    /// all nodes are visited, or when `visitor` returns false.
     @inlinable
-    func depthFirstVisit(start: Node, _ visitor: (DirectedGraphVisitElement<Edge, Node>) -> Void)
+    func depthFirstVisit(start: Node, _ visitor: (DirectedGraphVisitElement<Edge, Node>) -> Bool)
     
-    /// Performs a breadth-first visiting of this directed graph
+    /// Performs a breadth-first visiting of this directed graph, finishing once
+    /// all nodes are visited, or when `visitor` returns false.
     @inlinable
-    func breadthFirstVisit(start: Node, _ visitor: (DirectedGraphVisitElement<Edge, Node>) -> Void)
+    func breadthFirstVisit(start: Node, _ visitor: (DirectedGraphVisitElement<Edge, Node>) -> Bool)
 }
 
 /// Element for a graph visiting operation.
@@ -109,9 +111,10 @@ public extension DirectedGraph {
         return nodesConnected(towards: node) + nodesConnected(from: node)
     }
     
-    /// Performs a depth-first visiting of this directed graph
+    /// Performs a depth-first visiting of this directed graph, finishing once
+    /// all nodes are visited, or when `visitor` returns false.
     @inlinable
-    func depthFirstVisit(start: Node, _ visitor: (DirectedGraphVisitElement<Edge, Node>) -> Void) {
+    func depthFirstVisit(start: Node, _ visitor: (DirectedGraphVisitElement<Edge, Node>) -> Bool) {
         var visited: Set<Node> = []
         var queue: [DirectedGraphVisitElement<Edge, Node>] = []
         
@@ -120,7 +123,9 @@ public extension DirectedGraph {
         while let next = queue.popLast() {
             visited.insert(next.node)
             
-            visitor(next)
+            if !visitor(next) {
+                return
+            }
             
             for nextEdge in edges(from: next.node) {
                 let node = endNode(for: nextEdge)
@@ -133,9 +138,10 @@ public extension DirectedGraph {
         }
     }
     
-    /// Performs a breadth-first visiting of this directed graph
+    /// Performs a breadth-first visiting of this directed graph, finishing once
+    /// all nodes are visited, or when `visitor` returns false.
     @inlinable
-    func breadthFirstVisit(start: Node, _ visitor: (DirectedGraphVisitElement<Edge, Node>) -> Void) {
+    func breadthFirstVisit(start: Node, _ visitor: (DirectedGraphVisitElement<Edge, Node>) -> Bool) {
         var visited: Set<Node> = []
         var queue: [DirectedGraphVisitElement<Edge, Node>] = []
         
@@ -145,7 +151,9 @@ public extension DirectedGraph {
             let next = queue.removeFirst()
             visited.insert(next.node)
             
-            visitor(next)
+            if !visitor(next) {
+                return
+            }
             
             for nextEdge in edges(from: next.node) {
                 let node = endNode(for: nextEdge)
@@ -201,6 +209,33 @@ public extension DirectedGraph {
         }
         
         return list
+    }
+    
+    /// Returns the first path found that travels from a starting node to an end
+    /// node.
+    ///
+    /// In case the two nodes are not connected, or are connected in the opposite
+    /// direction, false is returned.
+    /// @inlinable
+    func hasPath(from start: Node, to end: Node) -> Bool {
+        var found = false
+        breadthFirstVisit(start: start) { visit in
+            if visit.node == end {
+                found = true
+                return false
+            }
+            
+            return true
+        }
+        
+        return found
+    }
+    
+    /// Returns true if there exists an edge that connects two nodes on the
+    /// specified direction.
+    @inlinable
+    func hasEdge(from start: Node, to end: Node) -> Bool {
+        return edge(from: start, to: end) != nil
     }
 }
 

@@ -7,7 +7,7 @@ let package = Package(
     name: "TargetDependencyChecker",
     dependencies: [
         // Dependencies declare other packages that this package depends on.
-        .package(url: "https://github.com/apple/swift-syntax", from: "0.50000.0"),
+        .package(url: "https://github.com/apple/swift-syntax", .revision("xcode11-beta1")),
     ],
     targets: [
         // MARK: -

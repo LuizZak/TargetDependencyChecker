@@ -3,6 +3,7 @@ import Foundation
 class PackageManager {
     let package: Package
     let packageRootUrl: URL
+    var _dependencyGraph: DependencyGraph?
     
     var targets: [Target] {
         return package.targets
@@ -13,8 +14,18 @@ class PackageManager {
         self.packageRootUrl = packageRootUrl
     }
     
-    func buildDependencyGraph() throws -> DependencyGraph {
-        try DependencyGraph(package: package)
+    func target(withName name: String) -> Target? {
+        return targets.first(where: { $0.name == name })
+    }
+    
+    func dependencyGraph() throws -> DependencyGraph {
+        if let graph = _dependencyGraph {
+            return graph
+        }
+        
+        let graph = try DependencyGraph(package: package)
+        _dependencyGraph = graph
+        return graph
     }
     
     func sourcePath(for target: Target) -> URL? {
@@ -38,6 +49,25 @@ class PackageManager {
                 .compactMap { URL(string: target.name, relativeTo: $0) }
         
         return mappedUrls.first(where: isDirectory(_:))
+    }
+    
+    func sourceFiles(for target: Target) throws -> [SourceFile] {
+        guard let path = sourcePath(for: target) else {
+            throw Error.invalidTargetUrl
+        }
+        
+        let files =
+            try FileManager
+                .default
+                .contentsOfDirectory(at: path,
+                                     includingPropertiesForKeys: nil,
+                                     options: [.skipsHiddenFiles])
+        
+        return files.filter({ $0.pathExtension == "swift" }).map(SourceFile.init)
+    }
+    
+    enum Error: Swift.Error {
+        case invalidTargetUrl
     }
 }
 
