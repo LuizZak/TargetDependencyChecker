@@ -28,24 +28,71 @@ public enum Checker {
         
         var visitedImports: Set<ImportVisit> = []
         
+        let inspections = try collectInspectionTargets(packageManager: packageManager)
+        
+        for inspection in inspections {
+            try inspect(inspection: inspection,
+                        packageManager: packageManager,
+                        options: options,
+                        visitedImports: &visitedImports)
+        }
+    }
+    
+    static func collectInspectionTargets(packageManager: PackageManager) throws -> [ImportInspection] {
+        var inspectionTargets: [ImportInspection] = []
+        
+        let operationQueue = OperationQueue()
+        let inspectionTargetsMutex = Mutex()
+        var error: Error?
+        let errorMutex = Mutex()
+        
         for target in packageManager.targets {
             let files = try packageManager.sourceFiles(for: target)
             
             for file in files {
-                try analyze(file: file,
-                            target: target,
-                            packageManager: packageManager,
-                            options: options,
-                            visitedImports: &visitedImports)
+                operationQueue.addOperation {
+                    let fileManager = SourceFileManager(sourceFile: file,
+                                                        fileManagerDelegate: DiskFileManagerDelegate())
+                    
+                    do {
+                        let importedFrameworkDeclarations = try fileManager.importedFrameworks()
+                        
+                        let inspection =
+                            ImportInspection(file: file,
+                                             target: target,
+                                             importedFrameworks: importedFrameworkDeclarations)
+                        
+                        
+                        inspectionTargetsMutex.locking {
+                            inspectionTargets.append(inspection)
+                        }
+                    } catch let e {
+                        errorMutex.locking {
+                            error = e
+                        }
+                    }
+                }
             }
         }
+        
+        operationQueue.waitUntilAllOperationsAreFinished()
+        
+        if let error = error {
+            throw error
+        }
+        
+        // Sort files by path to result in a predictable diagnostical output
+        return inspectionTargets.sorted(by: { $0.file.path.path < $1.file.path.path })
     }
     
-    static func analyze(file: SourceFile,
-                        target: Target,
+    static func inspect(inspection: ImportInspection,
                         packageManager: PackageManager,
                         options: Options,
                         visitedImports: inout Set<ImportVisit>) throws {
+        
+        let file = inspection.file
+        let target = inspection.target
+        let importedFrameworkDeclarations = inspection.importedFrameworks
         
         let diagnosticsTarget = options.outputType.diagnosticsOutput
         
@@ -54,11 +101,6 @@ public enum Checker {
         
         let relativePath =
             String(file.path.path.replacingOccurrences(of: rootPath, with: "").drop(while: { $0 == "/" }))
-        
-        let fileManager = SourceFileManager(sourceFile: file,
-                                            fileManagerDelegate: DiskFileManagerDelegate())
-        
-        let importedFrameworkDeclarations = try fileManager.importedFrameworks()
         
         for importDecl in importedFrameworkDeclarations {
             guard let frameworkTarget = packageManager.target(withName: importDecl.frameworkName) else {
@@ -88,6 +130,12 @@ public enum Checker {
                         relativePath: relativePath)
             }
         }
+    }
+    
+    struct ImportInspection {
+        var file: SourceFile
+        var target: Target
+        var importedFrameworks: [ImportedFrameworkDeclaration]
     }
     
     struct ImportVisit: Hashable {
