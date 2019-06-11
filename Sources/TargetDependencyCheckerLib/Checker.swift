@@ -51,8 +51,9 @@ public enum Checker {
             
             for file in files {
                 operationQueue.addOperation {
-                    let fileManager = SourceFileManager(sourceFile: file,
-                                                        fileManagerDelegate: DiskFileManagerDelegate())
+                    let fileManager =
+                        SourceFileManager(sourceFile: file,
+                                          fileManagerDelegate: DiskFileManagerDelegate())
                     
                     do {
                         let importedFrameworkDeclarations = try fileManager.importedFrameworks()
@@ -61,7 +62,6 @@ public enum Checker {
                             ImportInspection(file: file,
                                              target: target,
                                              importedFrameworks: importedFrameworkDeclarations)
-                        
                         
                         inspectionTargetsMutex.locking {
                             inspectionTargets.append(inspection)
