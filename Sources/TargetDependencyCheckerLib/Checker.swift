@@ -39,6 +39,8 @@ public enum Checker {
     }
     
     static func collectInspectionTargets(packageManager: PackageManager) throws -> [ImportInspection] {
+        let fileManagerDelegate = DiskFileManagerDelegate()
+        
         var inspectionTargets: [ImportInspection] = []
         
         let operationQueue = OperationQueue()
@@ -53,7 +55,7 @@ public enum Checker {
                 operationQueue.addOperation {
                     let fileManager =
                         SourceFileManager(sourceFile: file,
-                                          fileManagerDelegate: DiskFileManagerDelegate())
+                                          fileManagerDelegate: fileManagerDelegate)
                     
                     do {
                         let importedFrameworkDeclarations = try fileManager.importedFrameworks()
