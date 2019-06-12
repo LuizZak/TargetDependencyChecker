@@ -15,16 +15,22 @@ public enum Checker {
         public var warnOncePerFramework: Bool
         public var packageDirectory: URL?
         public var outputType: OutputType
+        public var includePattern: String?
+        public var excludePattern: String?
         
         public init(warnIndirectDependencies: Bool = false,
                     warnOncePerFramework: Bool = false,
                     packageDirectory: URL? = nil,
-                    outputType: OutputType = .terminal) {
+                    outputType: OutputType = .terminal,
+                    includePattern: String? = nil,
+                    excludePattern: String? = nil) {
             
             self.warnIndirectDependencies = warnIndirectDependencies
             self.warnOncePerFramework = warnOncePerFramework
             self.packageDirectory = packageDirectory
             self.outputType = outputType
+            self.includePattern = includePattern
+            self.excludePattern = excludePattern
         }
     }
     
@@ -37,7 +43,11 @@ public enum Checker {
         
         var visitedImports: Set<ImportVisit> = []
         
-        let inspections = try collectInspectionTargets(packageManager: packageManager)
+        let inspections =
+            try collectInspectionTargets(
+                packageManager: packageManager,
+                includePattern: options.includePattern,
+                excludePattern: options.excludePattern)
         
         for inspection in inspections {
             try inspect(inspection: inspection,
@@ -47,7 +57,10 @@ public enum Checker {
         }
     }
     
-    static func collectInspectionTargets(packageManager: PackageManager) throws -> [ImportInspection] {
+    static func collectInspectionTargets(packageManager: PackageManager,
+                                         includePattern: String?,
+                                         excludePattern: String?) throws -> [ImportInspection] {
+        
         let fileManagerDelegate = DiskFileManagerDelegate()
         
         var inspectionTargets: [ImportInspection] = []
@@ -58,7 +71,11 @@ public enum Checker {
         let errorMutex = Mutex()
         
         for target in packageManager.targets {
-            let files = try packageManager.sourceFiles(for: target)
+            let files =
+                try packageManager
+                    .sourceFiles(for: target,
+                                 includePattern: includePattern,
+                                 excludePattern: excludePattern)
             
             for file in files {
                 operationQueue.addOperation {

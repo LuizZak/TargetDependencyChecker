@@ -11,12 +11,37 @@ class DiskFileManagerDelegate: FileManagerDelegate {
         return string
     }
     
-    func allFilesInPath(_ url: URL) throws -> [URL] {
-        try FileManager
-            .default
-            .contentsOfDirectory(at: url,
-                                 includingPropertiesForKeys: nil,
-                                 options: [.skipsHiddenFiles])
+    func allFilesInUrl(_ url: URL, includePattern: String?, excludePattern: String?) throws -> [URL] {
+        let fnflags = FNM_CASEFOLD
+        
+        let fileManager = FileManager.default
+        guard var objcFiles = fileManager.enumerator(atPath: url.path)?.compactMap({ $0 as? String }) else {
+            throw Error.couldNotIterateDirectory
+        }
+        
+        // Inclusions
+        if let includePattern = includePattern {
+            objcFiles = objcFiles.filter { path in
+                fnmatch(includePattern, path, fnflags) == 0
+            }
+        }
+        // Exclusions
+        if let excludePattern = excludePattern {
+            objcFiles = objcFiles.filter { path in
+                fnmatch(excludePattern, path, fnflags) != 0
+            }
+        }
+        
+        return
+            objcFiles
+                // Map full path
+                .map { (path: String) -> String in
+                    return url.appendingPathComponent(path).path
+                }
+                // Convert to URLs
+                .map { (path: String) -> URL in
+                    return URL(fileURLWithPath: path)
+                }
     }
     
     func isDirectory(_ url: URL) -> Bool {
@@ -27,6 +52,7 @@ class DiskFileManagerDelegate: FileManagerDelegate {
 
 extension DiskFileManagerDelegate {
     enum Error: Swift.Error {
+        case couldNotIterateDirectory
         case invalidStringData
     }
 }

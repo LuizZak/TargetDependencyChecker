@@ -61,12 +61,19 @@ class PackageManager {
         return mappedUrls.first(where: fileManagerDelegate.isDirectory(_:))
     }
     
-    func sourceFiles(for target: Target) throws -> [SourceFile] {
+    func sourceFiles(for target: Target,
+                     includePattern: String? = nil,
+                     excludePattern: String? = nil) throws -> [SourceFile] {
+        
         guard let path = sourcePath(for: target) else {
             throw Error.invalidTargetUrl
         }
         
-        let files = try fileManagerDelegate.allFilesInPath(path)
+        let files =
+            try fileManagerDelegate
+                .allFilesInUrl(path,
+                               includePattern: includePattern,
+                               excludePattern: excludePattern)
         
         return files.filter({ $0.pathExtension == "swift" }).map(SourceFile.init)
     }

@@ -4,8 +4,8 @@ import Utility
 
 class Arguments {
     static func parse(arguments: [String]) throws -> Checker.Options {
-        let parser =
-            ArgumentParser(
+        let parser
+            = ArgumentParser(
                 usage: """
                 [--package-path|-p <path>] \
                 [--output-type|-t terminal | xcode] \
@@ -64,6 +64,29 @@ class Arguments {
                 
                 """)
         
+        // --exclude-pattern
+        let excludePatternArg
+            = parser.add(
+                option: "--exclude-pattern", shortName: "-e",
+                kind: String.self,
+                usage: """
+                Provides a file pattern for excluding from analysis all .swift
+                files that match a given pattern.
+                Pattern is applied to the full path.
+                """)
+
+        // --include-pattern
+        let includePatternArg
+            = parser.add(
+                option: "--include-pattern", shortName: "-i",
+                kind: String.self,
+                usage: """
+                Provides a file pattern for analyzing only .swift files that match
+                a given pattern.
+                Pattern is applied to the full path. --exclude-pattern takes \
+                priority over --include-pattern matches.
+                """)
+        
         let result = try parser.parse(arguments)
         
         var options = Checker.Options()
@@ -79,6 +102,12 @@ class Arguments {
         
         options.packageDirectory
             = result.get(packagePathArg).map(URL.init(fileURLWithPath:)) ?? options.packageDirectory
+        
+        options.excludePattern
+            = result.get(excludePatternArg) ?? options.excludePattern
+        
+        options.includePattern
+            = result.get(includePatternArg) ?? options.includePattern
         
         return options
     }
