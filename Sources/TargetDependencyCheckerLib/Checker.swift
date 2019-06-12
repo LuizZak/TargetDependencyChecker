@@ -155,7 +155,7 @@ public enum Checker {
     }
 }
 
-public enum OutputType {
+public enum OutputType: String {
     case terminal
     case xcode
     

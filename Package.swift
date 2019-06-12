@@ -1,12 +1,10 @@
 // swift-tools-version:5.1
-// The swift-tools-version declares the minimum version of Swift required to build this package.
-
 import PackageDescription
 
 let package = Package(
     name: "TargetDependencyChecker",
     dependencies: [
-        // Dependencies declare other packages that this package depends on.
+        .package(url: "https://github.com/apple/swift-package-manager.git", from: "0.3.0"),
         .package(url: "https://github.com/apple/swift-syntax", .revision("xcode11-beta1")),
     ],
     targets: [
@@ -16,7 +14,7 @@ let package = Package(
             dependencies: ["SwiftSyntax"]),
         .target(
             name: "TargetDependencyChecker",
-            dependencies: ["TargetDependencyCheckerLib"]),
+            dependencies: ["TargetDependencyCheckerLib", "Utility"]),
         
         // MARK: - Test targets
         .testTarget(
