@@ -17,7 +17,7 @@ class SourceFileManager {
         
         let file = try SyntaxParser.parse(source: source)
         let sourceLocationConverter =
-            SourceLocationConverter(file: sourceFile.path.path, tree: file)
+            SourceLocationConverter(file: sourceFile.path.path, source: file.description)
         
         var visitor = ImportVisitor(sourceLocationConverter: sourceLocationConverter)
         file.walk(&visitor)
@@ -33,7 +33,15 @@ class SourceFileManager {
             self.sourceLocationConverter = sourceLocationConverter
         }
         
-        func visit(_ node: ImportDeclSyntax) -> SyntaxVisitorContinueKind {
+        func visit(_ node: CodeBlockItemSyntax) -> SyntaxVisitorContinueKind {
+            if let importDecl = node.item as? ImportDeclSyntax {
+                inspectImport(importDecl)
+            }
+            
+            return .skipChildren
+        }
+        
+        func inspectImport(_ node: ImportDeclSyntax) {
             if node.attributes == nil && node.path.count == 1 {
                 let location =
                     node.startLocation(converter: sourceLocationConverter,
@@ -47,8 +55,6 @@ class SourceFileManager {
                 
                 imports.append(decl)
             }
-            
-            return .visitChildren
         }
     }
 }
