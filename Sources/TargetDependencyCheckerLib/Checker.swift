@@ -1,6 +1,15 @@
 import Foundation
 
 public enum Checker {
+    static var workDirectory: URL {
+        var buffer: [Int8] = Array(repeating: 0, count: 1024)
+        guard getcwd(&buffer, buffer.count) != nil else {
+            fatalError("Error fetching work directory")
+        }
+        
+        return URL(fileURLWithPath: String(cString: buffer))
+    }
+    
     public struct Options {
         public var warnIndirectDependencies: Bool
         public var warnOncePerFramework: Bool
@@ -20,7 +29,7 @@ public enum Checker {
     }
     
     public static func main(options: Options = Options()) throws {
-        let url = options.packageDirectory ?? PackageDiscovery.workDirectory
+        let url = options.packageDirectory ?? workDirectory
         
         let packageDiscovery = PackageDiscovery(packageUrl: url)
         

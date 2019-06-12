@@ -3,8 +3,7 @@ import Foundation
 class PackageDiscovery {
     let packageUrl: URL
     
-    init(packageUrl: URL = PackageDiscovery.workDirectory) {
-        
+    init(packageUrl: URL) {
         self.packageUrl = packageUrl
     }
     
@@ -67,15 +66,6 @@ extension PackageDiscovery {
         
         return try! process.readStandardOutput().spm_chomp()
     }()
-    
-    static var workDirectory: URL {
-        var buffer: [Int8] = Array(repeating: 0, count: 1024)
-        guard getcwd(&buffer, buffer.count) != nil else {
-            fatalError("Error fetching work directory")
-        }
-        
-        return URL(fileURLWithPath: String(cString: buffer))
-    }
 }
 
 extension String {
