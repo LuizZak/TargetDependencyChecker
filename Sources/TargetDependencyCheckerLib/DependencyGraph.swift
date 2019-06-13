@@ -1,9 +1,9 @@
 class DependencyGraph: DirectedGraph {
-    private(set) var nodes: [Target] = []
-    private(set) var edges: [Edge] = []
+    private(set) var nodes: Set<Target> = []
+    private(set) var edges: Set<Edge> = []
     
     init(package: Package) throws {
-        nodes = package.targets
+        nodes = Set(package.targets)
         try createGraphEdges()
     }
     
@@ -14,88 +14,65 @@ class DependencyGraph: DirectedGraph {
     
     @inlinable
     func startNode(for edge: Edge) -> Target {
-        return nodes[edge.startIndex]
+        return edge.start
     }
     
     @inlinable
     func endNode(for edge: Edge) -> Target {
-        return nodes[edge.endIndex]
+        return edge.end
     }
     
     @inlinable
-    func edges(from node: Target) -> [Edge] {
-        guard let index = nodeIndex(for: node.name) else {
-            return []
-        }
-        
-        return edges.filter { $0.startIndex == index }
+    func edges(from node: Target) -> Set<Edge> {
+        return edges.filter { $0.start == node }
     }
     
     @inlinable
-    func edges(towards node: Target) -> [Edge] {
-        guard let index = nodeIndex(for: node.name) else {
-            return []
-        }
-        
-        return edges.filter { $0.endIndex == index }
+    func edges(towards node: Target) -> Set<Edge> {
+        return edges.filter { $0.end == node }
     }
     
     @inlinable
     func edge(from start: Target, to end: Target) -> Edge? {
-        guard let startIndex = nodeIndex(for: start.name) else {
-            return nil
-        }
-        guard let endIndex = nodeIndex(for: end.name) else {
-            return nil
-        }
-        
-        return edges.first(where: { $0.startIndex == startIndex && $0.endIndex == endIndex })
+        return edges.first(where: { $0.start == start && $0.end == end })
     }
 }
 
 // MARK: - Higher level methods
 extension DependencyGraph {
-    func targetsDepending(on target: Target) -> [Target] {
+    func targetsDepending(on target: Target) -> Set<Target> {
         return nodesConnected(from: target)
     }
     
-    func dependencies(of target: Target) -> [Target] {
+    func dependencies(of target: Target) -> Set<Target> {
         return nodesConnected(towards: target)
     }
     
-    func targetsDepending(on targetName: String) -> [Target] {
-        if let index = nodeIndex(for: targetName) {
-            return edges.lazy.filter { $0.startIndex == index }.map { nodes[$0.endIndex] }
-        }
-        
-        return []
+    func targetsDepending(on targetName: String) -> Set<Target> {
+        return Set(edges.lazy.filter { $0.start.name == targetName }.map { $0.end })
     }
     
-    func dependencies(of targetName: String) -> [Target] {
-        if let index = nodeIndex(for: targetName) {
-            return edges.lazy.filter { $0.endIndex == index }.map { nodes[$0.startIndex] }
-        }
-        
-        return []
+    func dependencies(of targetName: String) -> Set<Target> {
+        return Set(edges.lazy.filter { $0.end.name == targetName }.map { $0.start })
     }
 }
 
 private extension DependencyGraph {
+    func targetNamed(_ name: String) -> Target? {
+        return nodes.first { $0.name == name }
+    }
+    
     func createGraphEdges() throws {
         for target in nodes {
             for dependency in target.dependencies {
-                guard let startIndex = nodeIndex(for: dependency.name) else {
+                guard let dependencyTarget = targetNamed(dependency.name) else {
                     continue
                 }
-                guard let endIndex = nodeIndex(for: target.name) else {
-                    continue
-                }
-                
-                guard self.edge(from: nodes[startIndex], to: nodes[endIndex]) == nil else {
+                guard self.edge(from: dependencyTarget, to: target) == nil else {
                     continue
                 }
                 
-                createEdge(from: startIndex, to: endIndex)
+                createEdge(from: dependencyTarget, to: target)
             }
         }
         
@@ -104,24 +81,20 @@ private extension DependencyGraph {
         }
     }
     
-    func createEdge(from startIndex: Int, to endIndex: Int) {
-        let edge = Edge(startIndex: startIndex, endIndex: endIndex)
-        edges.append(edge)
-    }
-    
-    func nodeIndex(for targetName: String) -> Int? {
-        nodes.firstIndex(where: { $0.name == targetName })
+    func createEdge(from start: Target, to end: Target) {
+        let edge = Edge(start: start, end: end)
+        edges.insert(edge)
     }
 }
 
 extension DependencyGraph {
     class Edge: DirectedGraphEdge {
-        var startIndex: Int
-        var endIndex: Int
+        var start: Target
+        var end: Target
         
-        init(startIndex: Int, endIndex: Int) {
-            self.startIndex = startIndex
-            self.endIndex = endIndex
+        init(start: Target, end: Target) {
+            self.start = start
+            self.end = end
         }
     }
 }

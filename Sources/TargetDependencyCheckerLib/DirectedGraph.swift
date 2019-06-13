@@ -4,9 +4,9 @@ public protocol DirectedGraph {
     associatedtype Node: DirectedGraphNode
     
     /// Gets a list of all nodes in this directed graph
-    var nodes: [Node] { get }
+    var nodes: Set<Node> { get }
     /// Gets a list of all edges in this directed graph
-    var edges: [Edge] { get }
+    var edges: Set<Edge> { get }
     
     /// Returns the starting edge for a given node on this graph.
     @inlinable
@@ -20,19 +20,19 @@ public protocol DirectedGraph {
     ///
     /// A reference equality test (===) is used to determine graph node equality.
     @inlinable
-    func allEdges(for node: Node) -> [Edge]
+    func allEdges(for node: Node) -> Set<Edge>
     
     /// Returns all outgoing edges for a given directed graph node.
     ///
     /// A reference equality test (===) is used to determine graph node equality.
     @inlinable
-    func edges(from node: Node) -> [Edge]
+    func edges(from node: Node) -> Set<Edge>
     
     /// Returns all ingoing edges for a given directed graph node.
     ///
     /// A reference equality test (===) is used to determine graph node equality.
     @inlinable
-    func edges(towards node: Node) -> [Edge]
+    func edges(towards node: Node) -> Set<Edge>
     
     /// Returns an existing edge between two nodes, or `nil`, if no edges between
     /// them currently exist.
@@ -46,21 +46,21 @@ public protocol DirectedGraph {
     ///
     /// A reference equality test (===) is used to determine graph node equality.
     @inlinable
-    func nodesConnected(from node: Node) -> [Node]
+    func nodesConnected(from node: Node) -> Set<Node>
     
     /// Returns all graph nodes that are connected towards a given directed graph
     /// node.
     ///
     /// A reference equality test (===) is used to determine graph node equality.
     @inlinable
-    func nodesConnected(towards node: Node) -> [Node]
+    func nodesConnected(towards node: Node) -> Set<Node>
     
     /// Returns all graph nodes that are connected towards and from the given
     /// graph node.
     ///
     /// A reference equality test (===) is used to determine graph node equality.
     @inlinable
-    func allNodesConnected(to node: Node) -> [Node]
+    func allNodesConnected(to node: Node) -> Set<Node>
     
     /// Performs a depth-first visiting of this directed graph, finishing once
     /// all nodes are visited, or when `visitor` returns false.
@@ -92,23 +92,23 @@ public enum DirectedGraphVisitElement<E: DirectedGraphEdge, N: DirectedGraphNode
 
 public extension DirectedGraph {
     @inlinable
-    func allEdges(for node: Node) -> [Edge] {
-        return edges(towards: node) + edges(from: node)
+    func allEdges(for node: Node) -> Set<Edge> {
+        return edges(towards: node).union(edges(from: node))
     }
     
     @inlinable
-    func nodesConnected(from node: Node) -> [Node] {
-        return edges(from: node).map(self.endNode(for:))
+    func nodesConnected(from node: Node) -> Set<Node> {
+        return Set(edges(from: node).map(self.endNode(for:)))
     }
     
     @inlinable
-    func nodesConnected(towards node: Node) -> [Node] {
-        return edges(towards: node).map(self.startNode(for:))
+    func nodesConnected(towards node: Node) -> Set<Node> {
+        return Set(edges(towards: node).map(self.startNode(for:)))
     }
     
     @inlinable
-    func allNodesConnected(to node: Node) -> [Node] {
-        return nodesConnected(towards: node) + nodesConnected(from: node)
+    func allNodesConnected(to node: Node) -> Set<Node> {
+        return nodesConnected(towards: node).union(nodesConnected(from: node))
     }
     
     /// Performs a depth-first visiting of this directed graph, finishing once
@@ -181,7 +181,7 @@ public extension DirectedGraph {
         var permanentMark: Set<Node> = []
         var temporaryMark: Set<Node> = []
         
-        var unmarkedNodes: [Node] = nodes
+        var unmarkedNodes: Set<Node> = nodes
         var list: [Node] = []
         
         func visit(_ node: Node) -> Bool {
@@ -202,7 +202,9 @@ public extension DirectedGraph {
             return true
         }
         
-        while let node = unmarkedNodes.popLast() {
+        while !unmarkedNodes.isEmpty {
+            let node = unmarkedNodes.removeFirst()
+            
             if !visit(node) {
                 return nil
             }

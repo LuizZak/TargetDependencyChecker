@@ -1,7 +1,8 @@
 import XCTest
 
-import TargetDependencyCheckerTests
+import TargetDependencyCheckerLibTests
 
 var tests = [XCTestCaseEntry]()
-tests += TargetDependencyCheckerTests.allTests()
+tests += TargetDependencyCheckerLibTests.__allTests()
+
 XCTMain(tests)
