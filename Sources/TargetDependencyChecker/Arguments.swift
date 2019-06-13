@@ -50,7 +50,7 @@ class Arguments {
         // --output-type terminal | xcode
         let targetArg
             = parser.add(
-                option: "--output-target", shortName: "-t",
+                option: "--output-type", shortName: "-t",
                 kind: OutputType.self,
                 usage: """
                 Specifies the format of the output.
