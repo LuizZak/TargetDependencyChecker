@@ -131,10 +131,6 @@ public enum Checker {
             String(file.path.path.replacingOccurrences(of: rootPath, with: "").drop(while: { $0 == "/" }))
         
         for importDecl in importedFrameworkDeclarations {
-            guard let frameworkTarget = packageManager.target(withName: importDecl.frameworkName) else {
-                continue
-            }
-            
             if options.warnOncePerFramework {
                 let importVisit = ImportVisit(framework: importDecl.frameworkName, target: target)
                 if !visitedImports.insert(importVisit).inserted {
@@ -142,14 +138,14 @@ public enum Checker {
                 }
             }
             
-            if !dependencyGraph.hasPath(from: frameworkTarget.name, to: target.name) {
+            if !dependencyGraph.hasPath(from: importDecl.frameworkName, to: target.name) {
                 diagnosticsTarget
                     .reportNonDependencyImport(
                         importDecl: importDecl,
                         target: target,
                         file: file,
                         relativePath: relativePath)
-            } else if options.warnIndirectDependencies && !dependencyGraph.hasEdge(from: frameworkTarget.name, to: target.name) {
+            } else if options.warnIndirectDependencies && !dependencyGraph.hasEdge(from: importDecl.frameworkName, to: target.name) {
                 diagnosticsTarget
                     .reportNonDirectDependencyImport(
                         importDecl: importDecl,

@@ -27,7 +27,8 @@ final class TargetDependencyCheckerTests: XCTestCase {
         
         XCTAssertEqual(output, """
             Warning: Found import declaration for framework Core in target TestPackage in file Sources/TestPackage/TestPackage.swift, but dependency is not declared in Package.swift manifest, neither directly or indirectly.
-            
+            Warning: Found import declaration for framework SwiftPM in target TestPackage in file Sources/TestPackage/TestPackage.swift, but dependency is not declared in Package.swift manifest, neither directly or indirectly.
+
             """)
         XCTAssertEqual(process.terminationStatus, 0)
     }
@@ -91,6 +92,7 @@ final class TargetDependencyCheckerTests: XCTestCase {
         XCTAssertEqual(output, """
             Indirect-dependency warning: Found import declaration for framework IndirectCoreRoot in target Core in file Sources/Core/Source.swift, but dependency is not declared explicitly in Package.swift manifest.
             Warning: Found import declaration for framework Core in target TestPackage in file Sources/TestPackage/TestPackage.swift, but dependency is not declared in Package.swift manifest, neither directly or indirectly.
+            Warning: Found import declaration for framework SwiftPM in target TestPackage in file Sources/TestPackage/TestPackage.swift, but dependency is not declared in Package.swift manifest, neither directly or indirectly.
             
             """)
         XCTAssertEqual(process.terminationStatus, 0)
