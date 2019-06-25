@@ -1,73 +1,58 @@
 class DependencyGraph: DirectedGraph {
-    private(set) var nodes: Set<Target> = []
+    private(set) var nodes: Set<String> = []
     private(set) var edges: Set<Edge> = []
     
     init(package: Package) throws {
-        nodes = Set(package.targets)
-        try createGraphEdges()
+        nodes = Set(package.targets.map { $0.name })
+        try createGraphEdges(targets: package.targets)
     }
     
     @inlinable
-    func startNode(for edge: Edge) -> Target {
+    func startNode(for edge: Edge) -> String {
         return edge.start
     }
     
     @inlinable
-    func endNode(for edge: Edge) -> Target {
+    func endNode(for edge: Edge) -> String {
         return edge.end
     }
     
     @inlinable
-    func edges(from node: Target) -> Set<Edge> {
+    func edges(from node: String) -> Set<Edge> {
         return edges.filter { $0.start == node }
     }
     
     @inlinable
-    func edges(towards node: Target) -> Set<Edge> {
+    func edges(towards node: String) -> Set<Edge> {
         return edges.filter { $0.end == node }
     }
     
     @inlinable
-    func edge(from start: Target, to end: Target) -> Edge? {
+    func edge(from start: String, to end: String) -> Edge? {
         return edges.first(where: { $0.start == start && $0.end == end })
     }
 }
 
 // MARK: - Higher level methods
 extension DependencyGraph {
-    func targetsDepending(on target: Target) -> Set<Target> {
-        return nodesConnected(from: target)
+    func targetsDepending(on targetName: String) -> Set<String> {
+        return Set(edges.lazy.filter { $0.start == targetName }.map { $0.end })
     }
     
-    func dependencies(of target: Target) -> Set<Target> {
-        return nodesConnected(towards: target)
-    }
-    
-    func targetsDepending(on targetName: String) -> Set<Target> {
-        return Set(edges.lazy.filter { $0.start.name == targetName }.map { $0.end })
-    }
-    
-    func dependencies(of targetName: String) -> Set<Target> {
-        return Set(edges.lazy.filter { $0.end.name == targetName }.map { $0.start })
+    func dependencies(of targetName: String) -> Set<String> {
+        return Set(edges.lazy.filter { $0.end == targetName }.map { $0.start })
     }
 }
 
 private extension DependencyGraph {
-    func targetNamed(_ name: String) -> Target? {
-        return nodes.first { $0.name == name }
-    }
-    
-    func createGraphEdges() throws {
-        for target in nodes {
+    func createGraphEdges(targets: [Target]) throws {
+        for target in targets {
             for dependency in target.dependencies {
-                guard let dependencyTarget = targetNamed(dependency.name) else {
-                    continue
-                }
-                guard self.edge(from: dependencyTarget, to: target) == nil else {
+                guard self.edge(from: dependency.name, to: target.name) == nil else {
                     continue
                 }
                 
-                createEdge(from: dependencyTarget, to: target)
+                createEdge(from: dependency.name, to: target.name)
             }
         }
         
@@ -76,20 +61,28 @@ private extension DependencyGraph {
         }
     }
     
-    func createEdge(from start: Target, to end: Target) {
+    func createEdge(from start: String, to end: String) {
         let edge = Edge(start: start, end: end)
         edges.insert(edge)
     }
 }
 
 extension DependencyGraph {
-    class Edge: DirectedGraphEdge {
-        var start: Target
-        var end: Target
+    class Edge: Hashable {
+        var start: String
+        var end: String
         
-        init(start: Target, end: Target) {
+        init(start: String, end: String) {
             self.start = start
             self.end = end
+        }
+        
+        static func == (lhs: Edge, rhs: Edge) -> Bool {
+            return lhs === rhs
+        }
+        
+        func hash(into hasher: inout Hasher) {
+            hasher.combine(ObjectIdentifier(self))
         }
     }
 }
@@ -99,5 +92,3 @@ extension DependencyGraph {
         case cyclicDependency
     }
 }
-
-extension Target: DirectedGraphNode { }

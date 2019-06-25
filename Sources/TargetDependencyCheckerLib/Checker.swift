@@ -142,14 +142,14 @@ public enum Checker {
                 }
             }
             
-            if !dependencyGraph.hasPath(from: frameworkTarget, to: target) {
+            if !dependencyGraph.hasPath(from: frameworkTarget.name, to: target.name) {
                 diagnosticsTarget
                     .reportNonDependencyImport(
                         importDecl: importDecl,
                         target: target,
                         file: file,
                         relativePath: relativePath)
-            } else if options.warnIndirectDependencies && !dependencyGraph.hasEdge(from: frameworkTarget, to: target) {
+            } else if options.warnIndirectDependencies && !dependencyGraph.hasEdge(from: frameworkTarget.name, to: target.name) {
                 diagnosticsTarget
                     .reportNonDirectDependencyImport(
                         importDecl: importDecl,

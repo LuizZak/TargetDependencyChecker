@@ -1,7 +1,7 @@
 /// A protocol for representing directed graphs
 public protocol DirectedGraph {
-    associatedtype Edge: DirectedGraphEdge
-    associatedtype Node: DirectedGraphNode
+    associatedtype Edge: Hashable
+    associatedtype Node: Hashable
     
     /// Gets a list of all nodes in this directed graph
     var nodes: Set<Node> { get }
@@ -77,7 +77,7 @@ public protocol DirectedGraph {
 ///
 /// - root: The item represents the root of a directed graph
 /// - edge: The item represents an edge, pointing to a node of the graph
-public enum DirectedGraphVisitElement<E: DirectedGraphEdge, N: DirectedGraphNode> {
+public enum DirectedGraphVisitElement<E, N> {
     case root(N)
     case edge(E, towards: N)
     
@@ -238,35 +238,5 @@ public extension DirectedGraph {
     @inlinable
     func hasEdge(from start: Node, to end: Node) -> Bool {
         return edge(from: start, to: end) != nil
-    }
-}
-
-/// A protocol for representing a directed graph's edge
-public protocol DirectedGraphEdge: Hashable {
-    
-}
-
-/// A protocol for representing a directed graph's node
-public protocol DirectedGraphNode: Hashable {
-    
-}
-
-public extension DirectedGraphEdge where Self: AnyObject {
-    static func == (lhs: Self, rhs: Self) -> Bool {
-        return lhs === rhs
-    }
-    
-    func hash(into hasher: inout Hasher) {
-        hasher.combine(ObjectIdentifier(self))
-    }
-}
-
-public extension DirectedGraphNode where Self: AnyObject {
-    static func == (lhs: Self, rhs: Self) -> Bool {
-        return lhs === rhs
-    }
-    
-    func hash(into hasher: inout Hasher) {
-        hasher.combine(ObjectIdentifier(self))
     }
 }
