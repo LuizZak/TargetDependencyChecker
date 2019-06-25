@@ -218,7 +218,7 @@ public extension DirectedGraph {
     ///
     /// In case the two nodes are not connected, or are connected in the opposite
     /// direction, false is returned.
-    /// @inlinable
+    @inlinable
     func hasPath(from start: Node, to end: Node) -> Bool {
         var found = false
         breadthFirstVisit(start: start) { visit in
