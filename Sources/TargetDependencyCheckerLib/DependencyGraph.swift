@@ -8,11 +8,6 @@ class DependencyGraph: DirectedGraph {
     }
     
     @inlinable
-    func areNodesEqual(_ node1: Target, _ node2: Target) -> Bool {
-        return node1.name == node2.name
-    }
-    
-    @inlinable
     func startNode(for edge: Edge) -> Target {
         return edge.start
     }
