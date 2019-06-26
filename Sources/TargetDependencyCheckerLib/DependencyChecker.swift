@@ -1,9 +1,11 @@
 import Foundation
 
-class DependencyChecker {
+public class DependencyChecker {
     let options: Checker.Options
     let packageManager: PackageManager
     let fileManagerDelegate: FileManagerDelegate
+    
+    public weak var delegate: DependencyCheckerDelegate?
     
     init(options: Checker.Options, packageManager: PackageManager, fileManagerDelegate: FileManagerDelegate) {
         self.options = options
@@ -24,9 +26,9 @@ class DependencyChecker {
     }
     
     func collectInspectionTargets(includePattern: String?,
-                                  excludePattern: String?) throws -> [ImportInspection] {
+                                  excludePattern: String?) throws -> [FileImportInspection] {
         
-        var inspectionTargets: [ImportInspection] = []
+        var inspectionTargets: [FileImportInspection] = []
         
         let operationQueue = OperationQueue()
         let inspectionTargetsMutex = Mutex()
@@ -50,7 +52,7 @@ class DependencyChecker {
                         let importedFrameworkDeclarations = try fileManager.importedFrameworks()
                         
                         let inspection =
-                            ImportInspection(file: file,
+                            FileImportInspection(file: file,
                                              target: target,
                                              importedFrameworks: importedFrameworkDeclarations)
                         
@@ -76,7 +78,7 @@ class DependencyChecker {
         return inspectionTargets.sorted(by: { $0.file.path.path < $1.file.path.path })
     }
     
-    func inspect(inspection: ImportInspection,
+    func inspect(inspection: FileImportInspection,
                  visitedImports: inout Set<ImportVisit>) throws {
         
         let file = inspection.file
@@ -92,6 +94,11 @@ class DependencyChecker {
             String(file.path.path.replacingOccurrences(of: rootPath, with: "").drop(while: { $0 == "/" }))
         
         for importDecl in importedFrameworkDeclarations {
+            // Ignore system frameworks that are implicitly imported.
+            if delegate?.dependencyChecker(self, isDependencySystemFramework: importDecl.frameworkName) == true {
+                continue
+            }
+            
             if options.warnOncePerFramework {
                 let importVisit = ImportVisit(framework: importDecl.frameworkName, target: target)
                 if !visitedImports.insert(importVisit).inserted {
@@ -117,7 +124,7 @@ class DependencyChecker {
         }
     }
     
-    struct ImportInspection {
+    struct FileImportInspection {
         var file: SourceFile
         var target: Target
         var importedFrameworks: [ImportedFrameworkDeclaration]

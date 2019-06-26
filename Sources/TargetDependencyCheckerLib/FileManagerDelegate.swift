@@ -1,5 +1,7 @@
 import Foundation
 
+// TODO: Refactor this name because it conflicts with Foundation's own
+// `FileManagerDelegate` type.
 protocol FileManagerDelegate {
     /// Returns all files in a given directory recursively, optionaly specifying
     /// include and exclude patterns to fine-grain the results.
