@@ -17,6 +17,8 @@ class DefaultDependencyCheckerDelegateTests: XCTestCase {
         XCTAssert(sut.dependencyChecker(dependencyChecker, isDependencySystemFramework: "ObjectiveC"))
         XCTAssert(sut.dependencyChecker(dependencyChecker, isDependencySystemFramework: "Darwin"))
         XCTAssert(sut.dependencyChecker(dependencyChecker, isDependencySystemFramework: "Glibc"))
+        XCTAssert(sut.dependencyChecker(dependencyChecker, isDependencySystemFramework: "XCTest"))
+        XCTAssert(sut.dependencyChecker(dependencyChecker, isDependencySystemFramework: "Dispatch"))
     }
 }
 

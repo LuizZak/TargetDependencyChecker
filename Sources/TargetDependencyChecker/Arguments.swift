@@ -10,7 +10,8 @@ class Arguments {
                 [--package-path|-p <path>] \
                 [--output-type|-t terminal | xcode] \
                 [--warn-once-per-framework|-o] \
-                [--warn-indirect-dependencies|-i]
+                [--warn-indirect-dependencies|-i] \
+                [--ignore-includes <includeName[,includeName]>]
                 """,
                 overview: """
                 Reports import statements of targets that are not specified as dependencies \
@@ -86,6 +87,16 @@ class Arguments {
                 Pattern is applied to the full path. --exclude-pattern takes \
                 priority over --include-pattern matches.
                 """)
+
+        // --ignore-includes
+        let ignoreIncludesArg
+            = parser.add(
+                option: "--ignore-includes",
+                kind: String.self,
+                usage: """
+                Ignores all includes in the string separated by commas provided
+                to this argument.
+                """)
         
         let result = try parser.parse(arguments)
         
@@ -108,6 +119,9 @@ class Arguments {
         
         options.includePattern
             = result.get(includePatternArg) ?? options.includePattern
+
+        options.ignoreIncludes
+            = result.get(ignoreIncludesArg).map { $0.components(separatedBy: ",") }.map(Set.init) ?? options.ignoreIncludes
         
         return options
     }

@@ -4,7 +4,9 @@ private let systemFrameworks: Set<String> = [
     "Foundation",
     "ObjectiveC",
     "Darwin",
-    "Glibc"
+    "Glibc",
+    "XCTest",
+    "Dispatch"
 ]
 
 public class DefaultDependencyCheckerDelegate: DependencyCheckerDelegate {

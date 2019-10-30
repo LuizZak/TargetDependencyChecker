@@ -17,13 +17,15 @@ public enum Checker {
         public var outputType: OutputType
         public var includePattern: String?
         public var excludePattern: String?
+        public var ignoreIncludes: Set<String>
         
         public init(warnIndirectDependencies: Bool = false,
                     warnOncePerFramework: Bool = false,
                     packageDirectory: URL? = nil,
                     outputType: OutputType = .terminal,
                     includePattern: String? = nil,
-                    excludePattern: String? = nil) {
+                    excludePattern: String? = nil,
+                    ignoreIncludes: Set<String> = []) {
             
             self.warnIndirectDependencies = warnIndirectDependencies
             self.warnOncePerFramework = warnOncePerFramework
@@ -31,6 +33,7 @@ public enum Checker {
             self.outputType = outputType
             self.includePattern = includePattern
             self.excludePattern = excludePattern
+            self.ignoreIncludes = ignoreIncludes
         }
     }
     
@@ -42,11 +45,14 @@ public enum Checker {
         let packageManager = try packageDiscovery.packageManager()
         
         let fileManagerDelegate = DiskFileManagerDelegate()
+        let delegate = DefaultDependencyCheckerDelegate()
         
         let dependencyChecker =
             DependencyChecker(options: options,
                               packageManager: packageManager,
                               fileManagerDelegate: fileManagerDelegate)
+
+        dependencyChecker.delegate = delegate
         
         try dependencyChecker.inspect()
     }

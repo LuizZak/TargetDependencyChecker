@@ -8,6 +8,8 @@ extension TargetDependencyCheckerTests {
     static let __allTests__TargetDependencyCheckerTests = [
         ("testDirectDependencyWarning", testDirectDependencyWarning),
         ("testDirectDependencyWarningXcode", testDirectDependencyWarningXcode),
+        ("testIgnoreIncludes", testIgnoreIncludes),
+        ("testIgnoreIncludesCommaSeparated", testIgnoreIncludesCommaSeparated),
         ("testIndirectDependencyWarning", testIndirectDependencyWarning),
         ("testIndirectDependencyWarningXcode", testIndirectDependencyWarningXcode),
     ]

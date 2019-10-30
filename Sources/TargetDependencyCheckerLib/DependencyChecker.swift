@@ -98,6 +98,9 @@ public class DependencyChecker {
             if delegate?.dependencyChecker(self, isDependencySystemFramework: importDecl.frameworkName) == true {
                 continue
             }
+            if options.ignoreIncludes.contains(importDecl.frameworkName) {
+                continue
+            }
             
             if options.warnOncePerFramework {
                 let importVisit = ImportVisit(framework: importDecl.frameworkName, target: target)

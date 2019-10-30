@@ -5,7 +5,7 @@ let package = Package(
     name: "TargetDependencyChecker",
     dependencies: [
         .package(url: "https://github.com/apple/swift-package-manager.git", from: "0.3.0"),
-        .package(url: "https://github.com/apple/swift-syntax", .revision("xcode11-beta1")),
+        .package(url: "https://github.com/apple/swift-syntax", .revision("0.50100.0")),
     ],
     targets: [
         // MARK: -

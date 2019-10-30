@@ -18,7 +18,7 @@ final class TargetDependencyCheckerTests: XCTestCase {
         
         let pipe = Pipe()
         process.standardOutput = pipe
-        
+
         try process.run()
         process.waitUntilExit()
         
@@ -135,6 +135,67 @@ final class TargetDependencyCheckerTests: XCTestCase {
         })
         XCTAssertEqual(process.terminationStatus, 0)
     }
+
+    func testIgnoreIncludes() throws {
+        guard #available(macOS 10.13, *) else {
+            return
+        }
+
+        let binary = productsDirectory.appendingPathComponent("TargetDependencyChecker")
+
+        let process = Process()
+        process.executableURL = binary
+        process.arguments = [
+            "--package-path",
+            "\(packageRootPath)/TestPackage",
+            "--ignore-includes",
+            "SwiftPM"
+        ]
+
+        let pipe = Pipe()
+        process.standardOutput = pipe
+
+        try process.run()
+        process.waitUntilExit()
+
+        let data = pipe.fileHandleForReading.readDataToEndOfFile()
+        let output = String(data: data, encoding: .utf8)
+
+        XCTAssertEqual(output, """
+            Warning: Found import declaration for framework Core in target TestPackage in file Sources/TestPackage/TestPackage.swift, but dependency is not declared in Package.swift manifest, neither directly or indirectly.
+
+            """)
+        XCTAssertEqual(process.terminationStatus, 0)
+    }
+
+    func testIgnoreIncludesCommaSeparated() throws {
+        guard #available(macOS 10.13, *) else {
+            return
+        }
+
+        let binary = productsDirectory.appendingPathComponent("TargetDependencyChecker")
+
+        let process = Process()
+        process.executableURL = binary
+        process.arguments = [
+            "--package-path",
+            "\(packageRootPath)/TestPackage",
+            "--ignore-includes",
+            "SwiftPM,Core"
+        ]
+
+        let pipe = Pipe()
+        process.standardOutput = pipe
+
+        try process.run()
+        process.waitUntilExit()
+
+        let data = pipe.fileHandleForReading.readDataToEndOfFile()
+        let output = String(data: data, encoding: .utf8)
+
+        XCTAssertEqual(output, "")
+        XCTAssertEqual(process.terminationStatus, 0)
+    }
     
     /// Returns path to the built products directory.
     var productsDirectory: URL {
@@ -147,10 +208,6 @@ final class TargetDependencyCheckerTests: XCTestCase {
         return Bundle.main.bundleURL
         #endif
     }
-    
-    static var allTests = [
-        ("testExample", testDirectDependencyWarning),
-    ]
 }
 
 let packageRootPath: String = {
