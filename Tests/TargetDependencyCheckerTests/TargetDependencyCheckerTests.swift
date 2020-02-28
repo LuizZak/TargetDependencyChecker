@@ -16,21 +16,15 @@ final class TargetDependencyCheckerTests: XCTestCase {
             "\(packageRootPath)/TestPackage"
         ]
         
-        let pipe = Pipe()
-        process.standardOutput = pipe
-
-        try process.run()
-        process.waitUntilExit()
+        let result = try runProcess(process)
         
-        let data = pipe.fileHandleForReading.readDataToEndOfFile()
-        let output = String(data: data, encoding: .utf8)
-        
-        XCTAssertEqual(output, """
+        XCTAssertEqual(result.standardOutput, """
             Warning: Found import declaration for framework Core in target TestPackage in file Sources/TestPackage/TestPackage.swift, but dependency is not declared in Package.swift manifest, neither directly or indirectly.
             Warning: Found import declaration for framework SwiftPM in target TestPackage in file Sources/TestPackage/TestPackage.swift, but dependency is not declared in Package.swift manifest, neither directly or indirectly.
 
             """)
-        XCTAssertEqual(process.terminationStatus, 0)
+        XCTAssertEqual(result.standardError, "")
+        XCTAssertEqual(result.terminationStatus, 0)
     }
     
     func testDirectDependencyWarningXcode() throws {
@@ -49,20 +43,14 @@ final class TargetDependencyCheckerTests: XCTestCase {
             "xcode"
         ]
         
-        let pipe = Pipe()
-        process.standardOutput = pipe
+        let result = try runProcess(process)
         
-        try process.run()
-        process.waitUntilExit()
-        
-        let data = pipe.fileHandleForReading.readDataToEndOfFile()
-        let output = String(data: data, encoding: .utf8)
-        
-        XCTAssert(output?.contains("""
+        XCTAssert(result.standardOutput.contains("""
             Sources/TestPackage/TestPackage.swift:1: warning: Import of framework Core in target TestPackage, but dependency is not declared in Package.swift manifest, neither directly or indirectly.
             
-            """) == true)
-        XCTAssertEqual(process.terminationStatus, 0)
+            """))
+        XCTAssertEqual(result.standardError, "")
+        XCTAssertEqual(result.terminationStatus, 0)
     }
     
     func testIndirectDependencyWarning() throws {
@@ -80,22 +68,16 @@ final class TargetDependencyCheckerTests: XCTestCase {
             "--warn-indirect-dependencies"
         ]
         
-        let pipe = Pipe()
-        process.standardOutput = pipe
+        let result = try runProcess(process)
         
-        try process.run()
-        process.waitUntilExit()
-        
-        let data = pipe.fileHandleForReading.readDataToEndOfFile()
-        let output = String(data: data, encoding: .utf8)
-        
-        XCTAssertEqual(output, """
+        XCTAssertEqual(result.standardOutput, """
             Indirect-dependency warning: Found import declaration for framework IndirectCoreRoot in target Core in file Sources/Core/Source.swift, but dependency is not declared explicitly in Package.swift manifest.
             Warning: Found import declaration for framework Core in target TestPackage in file Sources/TestPackage/TestPackage.swift, but dependency is not declared in Package.swift manifest, neither directly or indirectly.
             Warning: Found import declaration for framework SwiftPM in target TestPackage in file Sources/TestPackage/TestPackage.swift, but dependency is not declared in Package.swift manifest, neither directly or indirectly.
             
             """)
-        XCTAssertEqual(process.terminationStatus, 0)
+        XCTAssertEqual(result.standardError, "")
+        XCTAssertEqual(result.terminationStatus, 0)
     }
     
     func testIndirectDependencyWarningXcode() throws {
@@ -115,15 +97,9 @@ final class TargetDependencyCheckerTests: XCTestCase {
             "xcode"
         ]
         
-        let pipe = Pipe()
-        process.standardOutput = pipe
+        let result = try runProcess(process)
         
-        try process.run()
-        process.waitUntilExit()
-        
-        let data = pipe.fileHandleForReading.readDataToEndOfFile()
-        let output = String(data: data, encoding: .utf8)!
-        let lines = output.components(separatedBy: "\n")
+        let lines = result.standardOutput.components(separatedBy: "\n")
         
         XCTAssert(lines.contains { $0.contains("""
             Sources/Core/Source.swift:2: warning: Indirect-dependency: Import of framework IndirectCoreRoot in target Core, but dependency is not declared explicitly in Package.swift manifest.
@@ -133,7 +109,8 @@ final class TargetDependencyCheckerTests: XCTestCase {
             Sources/TestPackage/TestPackage.swift:1: warning: Import of framework Core in target TestPackage, but dependency is not declared in Package.swift manifest, neither directly or indirectly.
             """)
         })
-        XCTAssertEqual(process.terminationStatus, 0)
+        XCTAssertEqual(result.standardError, "")
+        XCTAssertEqual(result.terminationStatus, 0)
     }
 
     func testIgnoreIncludes() throws {
@@ -152,20 +129,14 @@ final class TargetDependencyCheckerTests: XCTestCase {
             "SwiftPM"
         ]
 
-        let pipe = Pipe()
-        process.standardOutput = pipe
+        let result = try runProcess(process)
 
-        try process.run()
-        process.waitUntilExit()
-
-        let data = pipe.fileHandleForReading.readDataToEndOfFile()
-        let output = String(data: data, encoding: .utf8)
-
-        XCTAssertEqual(output, """
+        XCTAssertEqual(result.standardOutput, """
             Warning: Found import declaration for framework Core in target TestPackage in file Sources/TestPackage/TestPackage.swift, but dependency is not declared in Package.swift manifest, neither directly or indirectly.
 
             """)
-        XCTAssertEqual(process.terminationStatus, 0)
+        XCTAssertEqual(result.standardError, "")
+        XCTAssertEqual(result.terminationStatus, 0)
     }
 
     func testIgnoreIncludesCommaSeparated() throws {
@@ -184,17 +155,32 @@ final class TargetDependencyCheckerTests: XCTestCase {
             "SwiftPM,Core"
         ]
 
+        let result = try runProcess(process)
+
+        XCTAssertEqual(result.standardOutput, "")
+        XCTAssertEqual(result.standardError, "")
+        XCTAssertEqual(result.terminationStatus, 0)
+    }
+    
+    @available(OSX 10.13, *)
+    func runProcess(_ process: Process) throws -> ProcessResult {
         let pipe = Pipe()
+        let errorPipe = Pipe()
         process.standardOutput = pipe
+        process.standardError = errorPipe
 
         try process.run()
         process.waitUntilExit()
-
+        
         let data = pipe.fileHandleForReading.readDataToEndOfFile()
         let output = String(data: data, encoding: .utf8)
-
-        XCTAssertEqual(output, "")
-        XCTAssertEqual(process.terminationStatus, 0)
+        
+        let errorData = errorPipe.fileHandleForReading.readDataToEndOfFile()
+        let errorOutput = String(data: errorData, encoding: .utf8)
+        
+        return ProcessResult(standardOutput: output ?? "",
+                             standardError: errorOutput ?? "",
+                             terminationStatus: process.terminationStatus)
     }
     
     /// Returns path to the built products directory.
@@ -207,6 +193,12 @@ final class TargetDependencyCheckerTests: XCTestCase {
         #else
         return Bundle.main.bundleURL
         #endif
+    }
+    
+    struct ProcessResult {
+        var standardOutput: String
+        var standardError: String
+        var terminationStatus: Int32
     }
 }
 
