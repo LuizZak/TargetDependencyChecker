@@ -3,7 +3,7 @@ import Foundation
 import ArgumentParser
 
 struct CheckCommand: ParsableCommand {
-    @Option(name: [.long, .short], help: """
+    @Option(name: .shortAndLong, help: """
             Specifies the path for the directory containing a Package.swift \
             manifest for a Swift Package Manager project.
             If not specified, defaults to the current working directory.
