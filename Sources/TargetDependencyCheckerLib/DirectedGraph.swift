@@ -8,57 +8,43 @@ public protocol DirectedGraph {
     /// Gets a list of all edges in this directed graph
     var edges: Set<Edge> { get }
     
-    /// Returns the starting edge for a given node on this graph.
+    /// Returns the starting node for a given edge on this graph.
     @inlinable
     func startNode(for edge: Edge) -> Node
     
-    /// Returns the ending edge for a given node on this graph.
+    /// Returns the ending node for a given edge on this graph.
     @inlinable
     func endNode(for edge: Edge) -> Node
     
     /// Returns all ingoing and outgoing edges for a given directed graph node.
-    ///
-    /// A reference equality test (===) is used to determine graph node equality.
     @inlinable
     func allEdges(for node: Node) -> Set<Edge>
     
     /// Returns all outgoing edges for a given directed graph node.
-    ///
-    /// A reference equality test (===) is used to determine graph node equality.
     @inlinable
     func edges(from node: Node) -> Set<Edge>
     
     /// Returns all ingoing edges for a given directed graph node.
-    ///
-    /// A reference equality test (===) is used to determine graph node equality.
     @inlinable
     func edges(towards node: Node) -> Set<Edge>
     
     /// Returns an existing edge between two nodes, or `nil`, if no edges between
     /// them currently exist.
-    ///
-    /// A reference equality test (===) is used to determine graph node equality.
     @inlinable
     func edge(from start: Node, to end: Node) -> Edge?
     
-    /// Returns all graph nodes that are connected from a given directed graph
-    /// node.
-    ///
-    /// A reference equality test (===) is used to determine graph node equality.
+    /// Returns all graph nodes `<n>` that are connected from a given directed
+    /// graph node, in `node -> <n>` fashion.
     @inlinable
     func nodesConnected(from node: Node) -> Set<Node>
     
-    /// Returns all graph nodes that are connected towards a given directed graph
-    /// node.
-    ///
-    /// A reference equality test (===) is used to determine graph node equality.
+    /// Returns all graph nodes `<n>` that are connected towards a given directed
+    /// graph node, in `<n> -> node` fashion.
     @inlinable
     func nodesConnected(towards node: Node) -> Set<Node>
     
     /// Returns all graph nodes that are connected towards and from the given
     /// graph node.
-    ///
-    /// A reference equality test (===) is used to determine graph node equality.
     @inlinable
     func allNodesConnected(to node: Node) -> Set<Node>
     
@@ -213,8 +199,8 @@ public extension DirectedGraph {
         return list
     }
     
-    /// Returns the first path found that travels from a starting node to an end
-    /// node.
+    /// Returns true if there exists a path in this graph that connect two given
+    /// nodes.
     ///
     /// In case the two nodes are not connected, or are connected in the opposite
     /// direction, false is returned.
