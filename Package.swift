@@ -4,8 +4,8 @@ import PackageDescription
 let package = Package(
     name: "TargetDependencyChecker",
     dependencies: [
-        .package(url: "https://github.com/apple/swift-syntax", .revision("0.50100.0")),
-        .package(url: "https://github.com/apple/swift-argument-parser.git", from: "0.0.1")
+        .package(url: "https://github.com/apple/swift-syntax", .revision("0.50200.0")),
+        .package(url: "https://github.com/apple/swift-argument-parser.git", from: "0.0.4")
     ],
     targets: [
         // MARK: -

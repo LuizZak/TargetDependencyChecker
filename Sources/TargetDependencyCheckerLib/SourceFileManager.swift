@@ -19,8 +19,8 @@ class SourceFileManager {
         let sourceLocationConverter =
             SourceLocationConverter(file: sourceFile.path.path, source: file.description)
         
-        var visitor = ImportVisitor(sourceLocationConverter: sourceLocationConverter)
-        file.walk(&visitor)
+        let visitor = ImportVisitor(sourceLocationConverter: sourceLocationConverter)
+        visitor.walk(file)
         
         return visitor.imports
     }
@@ -33,8 +33,8 @@ class SourceFileManager {
             self.sourceLocationConverter = sourceLocationConverter
         }
         
-        func visit(_ node: CodeBlockItemSyntax) -> SyntaxVisitorContinueKind {
-            if let importDecl = node.item as? ImportDeclSyntax {
+        override func visit(_ node: CodeBlockItemSyntax) -> SyntaxVisitorContinueKind {
+            if let importDecl = node.item.as(ImportDeclSyntax.self) {
                 inspectImport(importDecl)
             }
             
