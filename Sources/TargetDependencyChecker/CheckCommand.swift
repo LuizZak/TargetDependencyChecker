@@ -29,13 +29,13 @@ struct CheckCommand: ParsableCommand {
             When specified, omits warnings of violations for frameworks that \
             where already reported in previous files in the same target.
             """)
-    var warnOncePerFramework: Bool
+    var warnOncePerFramework: Bool = false
     
     @Flag(name: [.long, .customShort("i")], help: """
             When specified, warns when importing a target that is not a direct \
             dependency into another target.
             """)
-    var warnIndirectDependencies: Bool
+    var warnIndirectDependencies: Bool = false
     
     @Option(help: """
             Ignores all includes in the string separated by commas provided to \
