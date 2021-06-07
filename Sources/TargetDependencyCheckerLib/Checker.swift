@@ -26,6 +26,8 @@ public enum Checker {
         /// Specifies the format of the output.
         public var outputType: OutputType
         
+        // TODO: Tie in `includePattern` and `excludePattern` to command line
+        // arguments
         public var includePattern: String?
         public var excludePattern: String?
         
