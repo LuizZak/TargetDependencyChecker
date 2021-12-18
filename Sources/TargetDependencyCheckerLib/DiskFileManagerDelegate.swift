@@ -1,5 +1,11 @@
 import Foundation
 
+#if os(macOS)
+import Darwin
+#elseif os(Linux)
+import Glibc
+#endif
+
 class DiskFileManagerDelegate: FileManagerDelegate {
     func contentsOfFile(at url: URL, encoding: String.Encoding) throws -> String {
         let data = try Data(contentsOf: url)
@@ -12,7 +18,11 @@ class DiskFileManagerDelegate: FileManagerDelegate {
     }
     
     func allFilesInUrl(_ url: URL, includePattern: String?, excludePattern: String?) throws -> [URL] {
-        let fnflags = FNM_CASEFOLD
+#if os(macOS)
+        let fnflags: Int32 = FNM_CASEFOLD
+#else
+        let fnflags: Int32 = 0
+#endif
         
         let fileManager = FileManager.default
         guard var objcFiles = fileManager.enumerator(atPath: url.path)?.compactMap({ $0 as? String }) else {

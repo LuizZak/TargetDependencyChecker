@@ -35,11 +35,15 @@ public enum JSON: Equatable {
         case .array(let values):
             return values.map { $0.asObject }
         case .bool(let bool):
+#if canImport(ObjectiveC)
             if bool {
                 return kCFBooleanTrue!
             } else {
                 return kCFBooleanFalse!
             }
+#else
+            return bool
+#endif
         case .number(let number):
             return NSNumber(value: number)
         case .string(let string):
@@ -157,8 +161,10 @@ public extension JSON {
         case let array as [Any]:
             return try JSON.array(array.map(toJSON))
 
+#if canImport(ObjectiveC)
         case let boolean as NSNumber where CFGetTypeID(boolean as CFTypeRef) == CFBooleanGetTypeID():
             return JSON.bool((boolean as CFBoolean) == kCFBooleanTrue)
+#endif
 
         case let number as Int:
             return JSON.number(Double(number))

@@ -1,27 +1,41 @@
-// swift-tools-version:5.1
+// swift-tools-version:5.5
 import PackageDescription
 
 let package = Package(
     name: "TargetDependencyChecker",
     dependencies: [
-        .package(url: "https://github.com/apple/swift-syntax", .revision("0.50200.0")),
-        .package(url: "https://github.com/apple/swift-argument-parser.git", from: "0.2.1")
+        .package(url: "https://github.com/apple/swift-syntax", .revision("0.50500.0")),
+        .package(url: "https://github.com/apple/swift-argument-parser.git", from: "1.0.0")
     ],
     targets: [
         // MARK: -
         .target(
             name: "TargetDependencyCheckerLib",
-            dependencies: ["SwiftSyntax"]),
-        .target(
+            dependencies: [
+                .product(name: "SwiftSyntax", package: "swift-syntax")
+            ]
+        ),
+        .executableTarget(
             name: "TargetDependencyChecker",
-            dependencies: ["TargetDependencyCheckerLib", "ArgumentParser"]),
+            dependencies: [
+                .product(name: "ArgumentParser", package: "swift-argument-parser"),
+                "TargetDependencyCheckerLib"
+            ]
+        ),
         
         // MARK: - Test targets
         .testTarget(
             name: "TargetDependencyCheckerLibTests",
-            dependencies: ["TargetDependencyCheckerLib", "SwiftSyntax"]),
+            dependencies: [
+                "TargetDependencyCheckerLib",
+                .product(name: "SwiftSyntax", package: "swift-syntax")
+            ]
+        ),
         .testTarget(
             name: "TargetDependencyCheckerTests",
-            dependencies: ["TargetDependencyChecker"]),
+            dependencies: [
+                "TargetDependencyChecker"
+            ]
+        ),
     ]
 )

@@ -13,7 +13,7 @@ struct Target: Decodable, Hashable {
     
     init(from decoder: Decoder) throws {
         struct DependenciesArray: Decodable {
-            var byName: [String]
+            var byName: [String?]
         }
         
         let container = try decoder.container(keyedBy: CodingKeys.self)
@@ -24,7 +24,7 @@ struct Target: Decodable, Hashable {
         
         let dep = try container.decode([DependenciesArray].self, forKey: .dependencies)
         
-        dependencies = dep.flatMap { $0.byName.map(TargetDependency.init) }
+        dependencies = dep.flatMap { $0.byName.compactMap { $0.map(TargetDependency.init) } }
     }
     
     enum TargetType: String, Decodable {

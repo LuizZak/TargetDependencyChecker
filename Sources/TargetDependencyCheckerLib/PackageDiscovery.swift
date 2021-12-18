@@ -39,7 +39,7 @@ class PackageDiscovery {
     
     private func makeSwiftProcessAtPackagePath() -> Process {
         let process = Process()
-        process.launchPath = PackageDiscovery.swiftCompilerPath
+        process.executableURL = PackageDiscovery.swiftCompilerPath
         
         if #available(OSX 10.13, *) {
             process.currentDirectoryURL = packageUrl
@@ -53,18 +53,18 @@ class PackageDiscovery {
 
 extension PackageDiscovery {
     /// Path to the Swift compiler.
-    private static let swiftCompilerPath: String = {
+    private static let swiftCompilerPath: URL = {
         let process = Process()
         
         #if os(macOS)
-        process.launchPath = "/usr/bin/xcrun"
+        process.executableURL = URL(fileURLWithPath: "/usr/bin/xcrun")
         process.arguments = ["--sdk", "macosx", "-f", "swift"]
         #else
-        process.launchPath = "/usr/bin/which"
+        process.executableURL = URL(fileURLWithPath: "/usr/bin/which")
         process.arguments = ["swift"]
         #endif
         
-        return try! process.readStandardOutput().spm_chomp()
+        return URL(fileURLWithPath: try! process.readStandardOutput().spm_chomp())
     }()
 }
 
