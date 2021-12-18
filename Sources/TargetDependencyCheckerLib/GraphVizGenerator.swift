@@ -36,6 +36,14 @@ public class GraphVizGenerator {
                 continue
             }
 
+            // Ignore targets that are not defined within this package
+            guard packageManager.target(withName: edge.start) != nil else {
+                continue
+            }
+            guard packageManager.target(withName: edge.end) != nil else {
+                continue
+            }
+
             graphViz.addConnection(fromLabel: edge.start, toLabel: edge.end)
         }
 
