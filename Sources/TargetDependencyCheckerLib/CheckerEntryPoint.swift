@@ -1,15 +1,6 @@
 import Foundation
 
-public enum Checker {
-    static var workDirectory: URL {
-        var buffer: [Int8] = Array(repeating: 0, count: 1024)
-        guard getcwd(&buffer, buffer.count) != nil else {
-            fatalError("Error fetching work directory")
-        }
-        
-        return URL(fileURLWithPath: String(cString: buffer))
-    }
-    
+public enum CheckerEntryPoint {
     public struct Options {
         /// When specified, warns when importing a target that is not a direct
         /// dependency into another target.
@@ -54,7 +45,7 @@ public enum Checker {
     }
     
     public static func main(options: Options = Options()) throws {
-        let url = options.packageDirectory ?? workDirectory
+        let url = options.packageDirectory ?? workDirectory()
         
         let packageDiscovery = PackageDiscovery(packageUrl: url)
         
@@ -72,18 +63,18 @@ public enum Checker {
         
         try dependencyChecker.inspect()
     }
-}
-
-public enum OutputType: String {
-    case terminal
-    case xcode
     
-    var diagnosticsOutput: DiagnosticsOutput {
-        switch self {
-        case .terminal:
-            return TerminalDiagnosticsOutput()
-        case .xcode:
-            return XcodeDiagnosticsOutput()
+    public enum OutputType: String {
+        case terminal
+        case xcode
+        
+        var diagnosticsOutput: DiagnosticsOutput {
+            switch self {
+            case .terminal:
+                return TerminalDiagnosticsOutput()
+            case .xcode:
+                return XcodeDiagnosticsOutput()
+            }
         }
     }
 }

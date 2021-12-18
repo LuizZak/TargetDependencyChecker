@@ -51,16 +51,11 @@ class SourceFileManager {
                     ImportedFrameworkDeclaration(
                         frameworkName: node.path.description,
                         importDeclSyntax: node,
-                        location: location)
+                        location: location
+                    )
                 
                 imports.append(decl)
             }
         }
     }
-}
-
-struct ImportedFrameworkDeclaration {
-    var frameworkName: String
-    var importDeclSyntax: ImportDeclSyntax
-    var location: SourceLocation
 }

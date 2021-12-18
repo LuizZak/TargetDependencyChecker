@@ -21,4 +21,7 @@ protocol FileManagerDelegate {
     
     /// Returns `true` if a given `URL` represents a directory in the file system.
     func isDirectory(_ url: URL) -> Bool
+
+    /// Requests that the contents of
+    func writeContents(_ data: Data, toFileURL url: URL) throws
 }

@@ -1,13 +1,13 @@
 import Foundation
 
 public class DependencyChecker {
-    let options: Checker.Options
+    let options: CheckerEntryPoint.Options
     let packageManager: PackageManager
     let fileManagerDelegate: FileManagerDelegate
     
     public weak var delegate: DependencyCheckerDelegate?
     
-    init(options: Checker.Options, packageManager: PackageManager, fileManagerDelegate: FileManagerDelegate) {
+    init(options: CheckerEntryPoint.Options, packageManager: PackageManager, fileManagerDelegate: FileManagerDelegate) {
         self.options = options
         self.packageManager = packageManager
         self.fileManagerDelegate = fileManagerDelegate
@@ -17,65 +17,15 @@ public class DependencyChecker {
         var visitedImports: Set<ImportVisit> = []
         
         let inspections =
-            try collectInspectionTargets(includePattern: options.includePattern,
-                                         excludePattern: options.excludePattern)
+            try DependencyChecker.collectInspectionTargets(
+                packageManager: packageManager, fileManagerDelegate: fileManagerDelegate,
+                includePattern: options.includePattern,
+                excludePattern: options.excludePattern
+            )
         
         for inspection in inspections {
             try inspect(inspection: inspection, visitedImports: &visitedImports)
         }
-    }
-    
-    func collectInspectionTargets(includePattern: String?,
-                                  excludePattern: String?) throws -> [FileImportInspection] {
-        
-        var inspectionTargets: [FileImportInspection] = []
-        
-        let operationQueue = OperationQueue()
-        let inspectionTargetsMutex = Mutex()
-        var error: Error?
-        let errorMutex = Mutex()
-        
-        for target in packageManager.targets {
-            let files =
-                try packageManager
-                    .sourceFiles(for: target,
-                                 includePattern: includePattern,
-                                 excludePattern: excludePattern)
-            
-            for file in files {
-                operationQueue.addOperation { [fileManagerDelegate] in
-                    let fileManager =
-                        SourceFileManager(sourceFile: file,
-                                          fileManagerDelegate: fileManagerDelegate)
-                    
-                    do {
-                        let importedFrameworkDeclarations = try fileManager.importedFrameworks()
-                        
-                        let inspection =
-                            FileImportInspection(file: file,
-                                             target: target,
-                                             importedFrameworks: importedFrameworkDeclarations)
-                        
-                        inspectionTargetsMutex.locking {
-                            inspectionTargets.append(inspection)
-                        }
-                    } catch let e {
-                        errorMutex.locking {
-                            error = e
-                        }
-                    }
-                }
-            }
-        }
-        
-        operationQueue.waitUntilAllOperationsAreFinished()
-        
-        if let error = error {
-            throw error
-        }
-        
-        // Sort files by path to result in a predictable diagnostical output
-        return inspectionTargets.sorted(by: { $0.file.path.path < $1.file.path.path })
     }
     
     func inspect(inspection: FileImportInspection,
@@ -127,14 +77,60 @@ public class DependencyChecker {
         }
     }
     
-    struct FileImportInspection {
-        var file: SourceFile
-        var target: Target
-        var importedFrameworks: [ImportedFrameworkDeclaration]
-    }
-    
-    struct ImportVisit: Hashable {
-        var framework: String
-        var target: Target
+    static func collectInspectionTargets(packageManager: PackageManager,
+                                         fileManagerDelegate: FileManagerDelegate,
+                                         includePattern: String?,
+                                         excludePattern: String?) throws -> [FileImportInspection] {
+        
+        var inspectionTargets: [FileImportInspection] = []
+        
+        let operationQueue = OperationQueue()
+        let inspectionTargetsMutex = Mutex()
+        var error: Error?
+        let errorMutex = Mutex()
+        
+        for target in packageManager.targets {
+            let files =
+                try packageManager
+                    .sourceFiles(for: target,
+                                 includePattern: includePattern,
+                                 excludePattern: excludePattern)
+            
+            for file in files {
+                operationQueue.addOperation { [fileManagerDelegate] in
+                    let fileManager =
+                        SourceFileManager(sourceFile: file,
+                                          fileManagerDelegate: fileManagerDelegate)
+                    
+                    do {
+                        let importedFrameworkDeclarations = try fileManager.importedFrameworks()
+                        
+                        let inspection =
+                            FileImportInspection(
+                                file: file,
+                                target: target,
+                                importedFrameworks: importedFrameworkDeclarations
+                            )
+                        
+                        inspectionTargetsMutex.locking {
+                            inspectionTargets.append(inspection)
+                        }
+                    } catch let e {
+                        errorMutex.locking {
+                            error = e
+                        }
+                    }
+                }
+            }
+        }
+        
+        operationQueue.waitUntilAllOperationsAreFinished()
+        
+        if let error = error {
+            throw error
+        }
+        
+        // Sort files by path to result in a predictable diagnostic output
+        return inspectionTargets.sorted(by: { $0.file.path.path < $1.file.path.path })
     }
 }

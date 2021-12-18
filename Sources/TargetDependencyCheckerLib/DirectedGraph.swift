@@ -7,6 +7,10 @@ public protocol DirectedGraph {
     var nodes: Set<Node> { get }
     /// Gets a list of all edges in this directed graph
     var edges: Set<Edge> { get }
+
+    /// Returns whether a given node is present in this graph.
+    @inlinable
+    func hasNode(_ node: Node) -> Bool
     
     /// Returns the starting node for a given edge on this graph.
     @inlinable
@@ -77,6 +81,11 @@ public enum DirectedGraphVisitElement<E, N> {
 }
 
 public extension DirectedGraph {
+    @inlinable
+    func hasNode(_ node: Node) -> Bool {
+        return nodes.contains(node)
+    }
+
     @inlinable
     func allEdges(for node: Node) -> Set<Edge> {
         return edges(towards: node).union(edges(from: node))

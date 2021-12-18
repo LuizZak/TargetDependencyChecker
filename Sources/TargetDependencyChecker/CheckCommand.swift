@@ -3,6 +3,14 @@ import Foundation
 import ArgumentParser
 
 struct CheckCommand: ParsableCommand {
+    static let configuration = CommandConfiguration(
+        commandName: "check",
+        discussion: """
+        Inspects a Swift Package Manager project and produce warnings about \
+        targets that include other targets that are not declared as dependencies \
+        in the Package.swift manifest.
+        """)
+
     @Option(name: .shortAndLong, help: """
             Specifies the path for the directory containing a Package.swift \
             manifest for a Swift Package Manager project.
@@ -23,7 +31,7 @@ struct CheckCommand: ParsableCommand {
             that Xcode can detect when used as a build phase.
             
             """)
-    var outputType: OutputType?
+    var outputType: CheckerEntryPoint.OutputType?
     
     @Flag(name: [.long, .customShort("o")], help: """
             When specified, omits warnings of violations for frameworks that \
@@ -44,7 +52,7 @@ struct CheckCommand: ParsableCommand {
     var ignoreIncludes: String?
     
     func run() throws {
-        var options = Checker.Options()
+        var options = CheckerEntryPoint.Options()
         
         options.packageDirectory = packagePath.map(URL.init(fileURLWithPath:)) ?? options.packageDirectory
         options.outputType = outputType ?? options.outputType
@@ -52,13 +60,13 @@ struct CheckCommand: ParsableCommand {
         options.warnIndirectDependencies = warnIndirectDependencies
         options.ignoreIncludes = ignoreIncludes.map { $0.components(separatedBy: ",") }.map(Set.init) ?? options.ignoreIncludes
         
-        try Checker.main(options: options)
+        try CheckerEntryPoint.main(options: options)
     }
 }
 
-extension OutputType: ExpressibleByArgument {
+extension CheckerEntryPoint.OutputType: ExpressibleByArgument {
     public init?(argument: String) {
-        guard let option = OutputType(rawValue: argument) else {
+        guard let option = Self(rawValue: argument) else {
             return nil
         }
         

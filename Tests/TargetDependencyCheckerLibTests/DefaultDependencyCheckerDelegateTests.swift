@@ -35,11 +35,11 @@ func makeMockDependencyChecker() -> DependencyChecker {
     return DependencyChecker(options: .init(),
                              packageManager: PackageManager(package: package,
                                                             packageRootUrl: URL(fileURLWithPath: ""),
-                                                            fileManagerDelegate: DiskFileManagerDelegate()),
-                             fileManagerDelegate: DiskFileManagerDelegate())
+                                                            fileManagerDelegate: MockFileManagerDelegate()),
+                             fileManagerDelegate: MockFileManagerDelegate())
 }
 
-class MockFileManagerDelegate: TargetDependencyCheckerLib.FileManagerDelegate {
+private class MockFileManagerDelegate: TargetDependencyCheckerLib.FileManagerDelegate {
     func allFilesInUrl(_ url: URL, includePattern: String?, excludePattern: String?) throws -> [URL] {
         return []
     }
@@ -48,5 +48,8 @@ class MockFileManagerDelegate: TargetDependencyCheckerLib.FileManagerDelegate {
     }
     func isDirectory(_ url: URL) -> Bool {
         return false
+    }
+    func writeContents(_ data: Data, toFileURL url: URL) throws {
+        
     }
 }

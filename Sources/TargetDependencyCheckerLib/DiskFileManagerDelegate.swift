@@ -58,6 +58,10 @@ class DiskFileManagerDelegate: FileManagerDelegate {
         var isDir: ObjCBool = false
         return FileManager.default.fileExists(atPath: url.path, isDirectory: &isDir) && isDir.boolValue
     }
+
+    func writeContents(_ data: Data, toFileURL url: URL) throws {
+        try data.write(to: url)
+    }
 }
 
 extension DiskFileManagerDelegate {

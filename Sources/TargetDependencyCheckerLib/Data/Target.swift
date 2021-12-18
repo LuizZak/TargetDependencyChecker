@@ -11,11 +11,7 @@ struct Target: Decodable, Hashable {
         self.type = type
     }
     
-    init(from decoder: Decoder) throws {
-        struct DependenciesArray: Decodable {
-            var byName: [String?]
-        }
-        
+    init(from decoder: Decoder) throws {        
         let container = try decoder.container(keyedBy: CodingKeys.self)
         
         try name = container.decode(String.self, forKey: .name)
@@ -24,12 +20,13 @@ struct Target: Decodable, Hashable {
         
         let dep = try container.decode([DependenciesArray].self, forKey: .dependencies)
         
-        dependencies = dep.flatMap { $0.byName.compactMap { $0.map(TargetDependency.init) } }
+        dependencies = dep.flatMap { $0.byName?.compactMap { $0.map(TargetDependency.init) } ?? [] }
     }
     
     enum TargetType: String, Decodable {
         case regular
         case test
+        case executable
     }
     
     enum CodingKeys: String, CodingKey {
@@ -37,6 +34,10 @@ struct Target: Decodable, Hashable {
         case path
         case dependencies
         case type
+    }
+
+    struct DependenciesArray: Decodable {
+        var byName: [String?]?
     }
 }
 

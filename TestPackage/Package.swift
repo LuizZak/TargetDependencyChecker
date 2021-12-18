@@ -26,6 +26,9 @@ let package = Package(
             dependencies: ["IndirectCore"]),
         .target(
             name: "TestPackage",
-            dependencies: [])
+            dependencies: []),
+        .testTarget(
+            name: "TestPackageTests",
+            dependencies: ["TestPackage"])
     ]
 )

@@ -161,7 +161,86 @@ final class TargetDependencyCheckerTests: XCTestCase {
         XCTAssertEqual(result.standardError, "")
         XCTAssertEqual(result.terminationStatus, 0)
     }
-    
+
+    func testGraphViz_includeIndirect() throws {
+        guard #available(macOS 10.13, *) else {
+            return
+        }
+
+        let binary = productsDirectory.appendingPathComponent("TargetDependencyChecker")
+
+        let process = Process()
+        process.executableURL = binary
+        process.arguments = [
+            "graph",
+            "--package-path",
+            "\(packageRootPath)/TestPackage",
+            "--include-indirect"
+        ]
+
+        let result = try runProcess(process)
+
+        XCTAssertEqual(result.standardOutput, """
+            digraph {
+                graph [rankdir=LR]
+
+                0 [label="Core"]
+                1 [label="IndirectCore"]
+                2 [label="IndirectCoreRoot"]
+                3 [label="TestPackage"]
+
+                0 -> 1
+                0 -> 2 [label="@ /Sources/Core/Source.swift"]
+                1 -> 2
+                3 -> 0 [label="@ /Sources/TestPackage/TestPackage.swift", color=red]
+            }
+
+            """)
+        XCTAssertEqual(result.standardError, "")
+        XCTAssertEqual(result.terminationStatus, 0)
+    }
+
+    func testGraphViz_includeTests() throws {
+        guard #available(macOS 10.13, *) else {
+            return
+        }
+
+        let binary = productsDirectory.appendingPathComponent("TargetDependencyChecker")
+
+        let process = Process()
+        process.executableURL = binary
+        process.arguments = [
+            "graph",
+            "--package-path",
+            "\(packageRootPath)/TestPackage",
+            "--include-tests"
+        ]
+
+        let result = try runProcess(process)
+
+        XCTAssertEqual(result.standardOutput, """
+            digraph {
+                graph [rankdir=LR]
+
+                0 [label="Core"]
+                1 [label="IndirectCore"]
+                2 [label="IndirectCoreRoot"]
+                3 [label="TestPackage"]
+                4 [label="TestPackageTests"]
+
+                0 -> 1
+                1 -> 2
+                3 -> 0 [label="@ /Sources/TestPackage/TestPackage.swift", color=red]
+                4 -> 3
+            }
+
+            """)
+        XCTAssertEqual(result.standardError, "")
+        XCTAssertEqual(result.terminationStatus, 0)
+    }
+}
+
+extension TargetDependencyCheckerTests {
     @available(OSX 10.13, *)
     func runProcess(_ process: Process) throws -> ProcessResult {
         let pipe = Pipe()

@@ -42,7 +42,7 @@ class PackageManager {
         let sourceDirectories: [String]
         
         switch target.type {
-        case .regular:
+        case .regular, .executable:
             sourceDirectories = PackageManager.predefinedSourceDirectories
             
         case .test:
