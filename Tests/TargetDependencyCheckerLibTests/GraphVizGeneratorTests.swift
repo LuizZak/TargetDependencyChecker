@@ -79,7 +79,7 @@ class GraphVizGeneratorTests: XCTestCase {
         digraph {
             graph [rankdir=LR]
 
-            label = "Sources"
+            label = "path/Sources"
 
             0 [label="Core"]
 

@@ -124,7 +124,17 @@ class GraphViz {
         /// the new simplified hierarchy.
         func simplify() -> Group {
             if isSingleGroup {
-                return subgroups[0].simplify()
+                let group = subgroups[0].simplify()
+                switch (title, group.title) {
+                case (let t1?, let t2?):
+                    group.title = "\(t1)/\(t2)"
+                case (let t1?, nil):
+                    group.title = t1
+                default:
+                    break
+                }
+
+                return group
             }
 
             let group = Group(title: title, isCluster: isCluster)
