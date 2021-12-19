@@ -15,16 +15,21 @@ public enum GraphVizEntryPoint {
 
         /// Whether to include test targets in the graph.
         public var includeTests: Bool
+
+        /// Whether to include folder hierarchy information in the graph.
+        public var includeFolderHierarchy: Bool
         
         public init(packageDirectory: URL? = nil,
                     outputType: OutputType = .terminal,
                     includeIndirect: Bool = false,
-                    includeTests: Bool = false) {
+                    includeTests: Bool = false,
+                    includeFolderHierarchy: Bool = false) {
             
             self.packageDirectory = packageDirectory
             self.outputType = outputType
             self.includeIndirect = includeIndirect
             self.includeTests = includeTests
+            self.includeFolderHierarchy = includeFolderHierarchy
         }
     }
     
@@ -40,7 +45,8 @@ public enum GraphVizEntryPoint {
 
         let graphViz = try sut.generateFile(
             includeIndirect: options.includeIndirect,
-            includeTests: options.includeTests
+            includeTests: options.includeTests,
+            includeFolderHierarchy: options.includeFolderHierarchy
         )
 
         switch options.outputType {

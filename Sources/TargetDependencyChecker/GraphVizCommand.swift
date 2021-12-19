@@ -24,15 +24,20 @@ struct GraphVizCommand: ParsableCommand {
     var output: String?
     
     @Flag(name: .shortAndLong, help: """
-        Whether to include indirect dependencies via `import` statements on \
-        target's files.
+        Include indirect dependencies via `import` statements on target's files.
         """)
     var includeIndirect: Bool = false
 
     @Flag(name: [.long, .customShort("t")], help: """
-        Whether to include test targets in the graph.
+        Include test targets in the graph.
         """)
     var includeTests: Bool = false
+
+    @Flag(name: [.long, .customShort("f")], help: """
+        Include information about the target's folder hierarchy as clusters in \
+        the graph.
+        """)
+    var includeFolderHierarchy: Bool = false
 
     func run() throws {
         var options = GraphVizEntryPoint.Options()
@@ -45,6 +50,7 @@ struct GraphVizCommand: ParsableCommand {
 
         options.includeIndirect = includeIndirect
         options.includeTests = includeTests
+        options.includeFolderHierarchy = includeFolderHierarchy
         
         try GraphVizEntryPoint.main(options: options)
     }

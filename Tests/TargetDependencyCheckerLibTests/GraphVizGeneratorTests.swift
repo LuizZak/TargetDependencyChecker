@@ -14,13 +14,13 @@ class GraphVizGeneratorTests: XCTestCase {
         let delegate = MockFileManagerDelegate()
         let packageManager = PackageManager(
             package: package,
-            packageRootUrl: URL(fileURLWithPath: "/dummy/path"),
+            packageRootUrl: URL(fileURLWithPath: "/dummy/path", isDirectory: true),
             fileManagerDelegate: delegate
         )
 
         let sut = GraphVizGenerator(packageManager: packageManager, fileManagerDelegate: delegate)
 
-        let result = try sut.generateFile(includeIndirect: true, includeTests: true)
+        let result = try sut.generateFile(includeIndirect: true, includeTests: true, includeFolderHierarchy: false)
 
         XCTAssertEqual(result, """
         digraph {
@@ -36,9 +36,130 @@ class GraphVizGeneratorTests: XCTestCase {
         """)
     }
 
+    func _makeHierarchyPackage() -> Package {
+        PackageBuilder { pack in
+            pack
+            .addTarget(name: "Core", path: "Sources/Core")
+            .addTarget(name: "FrontendData", path: "Sources/Frontend/FrontendData") {
+                $0.addDependency("Core")
+            }
+            .addTarget(name: "FrontendManager", path: "Sources/Frontend/FrontendManager") {
+                $0.addDependency("FrontendData")
+                $0.addDependency("Core")
+            }
+            // Tests
+            .addTarget(name: "CoreTests", type: .test) {
+                $0.addDependency("Core")
+            }
+            .addTarget(name: "FrontendDataTests", path: "Tests/Frontend/FrontendDataTests", type: .test) {
+                $0.addDependency("FrontendData")
+                $0.addDependency("Core")
+            }
+            .addTarget(name: "FrontendManagerTests", path: "Tests/Frontend/FrontendManagerTests", type: .test) {
+                $0.addDependency("FrontendManager")
+                $0.addDependency("FrontendData")
+                $0.addDependency("Core")
+            }
+        }.build()
+    }
+    func testGenerate_mockedPackage_includeFolderHierarchy_true() throws {
+        let package = _makeHierarchyPackage()
+        let delegate = MockFileManagerDelegate()
+        let packageManager = PackageManager(
+            package: package,
+            packageRootUrl: URL(fileURLWithPath: "/dummy/path", isDirectory: true),
+            fileManagerDelegate: delegate
+        )
+
+        let sut = GraphVizGenerator(packageManager: packageManager, fileManagerDelegate: delegate)
+
+        let result = try sut.generateFile(includeIndirect: false, includeTests: false, includeFolderHierarchy: true)
+
+        XCTAssertEqual(result, """
+        digraph {
+            graph [rankdir=LR]
+
+            label = "Sources"
+
+            0 [label="Core"]
+
+            subgraph cluster_1 {
+                label = "Frontend"
+
+                1 [label="FrontendData"]
+                2 [label="FrontendManager"]
+
+                2 -> 1
+            }
+
+            1 -> 0
+            2 -> 0
+        }
+        """)
+    }
+    func testGenerate_mockedPackage_includeFolderHierarchy_includeTests_true() throws {
+        let package = _makeHierarchyPackage()
+        let delegate = MockFileManagerDelegate()
+        let packageManager = PackageManager(
+            package: package,
+            packageRootUrl: URL(fileURLWithPath: "/dummy/path", isDirectory: true),
+            fileManagerDelegate: delegate
+        )
+
+        let sut = GraphVizGenerator(packageManager: packageManager, fileManagerDelegate: delegate)
+
+        let result = try sut.generateFile(includeIndirect: false, includeTests: true, includeFolderHierarchy: true)
+
+        XCTAssertEqual(result, """
+        digraph {
+            graph [rankdir=LR]
+
+            label = "path"
+
+            subgraph cluster_1 {
+                label = "Sources"
+
+                0 [label="Core"]
+
+                subgraph cluster_2 {
+                    label = "Frontend"
+
+                    2 [label="FrontendData"]
+                    4 [label="FrontendManager"]
+
+                    4 -> 2
+                }
+
+                2 -> 0
+                4 -> 0
+            }
+
+            subgraph cluster_3 {
+                label = "Tests"
+
+                1 [label="CoreTests"]
+
+                subgraph cluster_4 {
+                    label = "Frontend"
+
+                    3 [label="FrontendDataTests"]
+                    5 [label="FrontendManagerTests"]
+                }
+            }
+
+            1 -> 0
+            3 -> 0
+            3 -> 2
+            5 -> 0
+            5 -> 2
+            5 -> 4
+        }
+        """)
+    }
+
     func testGenerate_diskPackage() throws {
         let sut = try generateDiskPackageSut()
-        let result = try sut.generateFile(includeIndirect: true, includeTests: true)
+        let result = try sut.generateFile(includeIndirect: true, includeTests: true, includeFolderHierarchy: false)
 
         XCTAssertEqual(result, """
         digraph {
@@ -61,7 +182,7 @@ class GraphVizGeneratorTests: XCTestCase {
 
     func testGenerate_diskPackage_includeIndirect_false() throws {
         let sut = try generateDiskPackageSut()
-        let result = try sut.generateFile(includeIndirect: false, includeTests: true)
+        let result = try sut.generateFile(includeIndirect: false, includeTests: true, includeFolderHierarchy: false)
 
         XCTAssertEqual(result, """
         digraph {
@@ -83,7 +204,7 @@ class GraphVizGeneratorTests: XCTestCase {
 
     func testGenerate_diskPackage_includeTests_false() throws {
         let sut = try generateDiskPackageSut()
-        let result = try sut.generateFile(includeIndirect: true, includeTests: false)
+        let result = try sut.generateFile(includeIndirect: true, includeTests: false, includeFolderHierarchy: false)
 
         XCTAssertEqual(result, """
         digraph {

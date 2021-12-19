@@ -34,7 +34,7 @@ func makeMockDependencyChecker() -> DependencyChecker {
     
     return DependencyChecker(options: .init(),
                              packageManager: PackageManager(package: package,
-                                                            packageRootUrl: URL(fileURLWithPath: ""),
+                                                            packageRootUrl: URL(fileURLWithPath: "/dummy/path", isDirectory: true),
                                                             fileManagerDelegate: MockFileManagerDelegate()),
                              fileManagerDelegate: MockFileManagerDelegate())
 }

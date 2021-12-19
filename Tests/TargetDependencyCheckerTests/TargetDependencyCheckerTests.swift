@@ -238,6 +238,54 @@ final class TargetDependencyCheckerTests: XCTestCase {
         XCTAssertEqual(result.standardError, "")
         XCTAssertEqual(result.terminationStatus, 0)
     }
+
+    func testGraphViz_includeFolderHierarchy() throws {
+        guard #available(macOS 10.13, *) else {
+            return
+        }
+
+        let binary = productsDirectory.appendingPathComponent("TargetDependencyChecker")
+
+        let process = Process()
+        process.executableURL = binary
+        process.arguments = [
+            "graph",
+            "--package-path",
+            "\(packageRootPath)/TestPackage",
+            "--include-tests",
+            "--include-folder-hierarchy"
+        ]
+
+        let result = try runProcess(process)
+
+        XCTAssertEqual(result.standardOutput, """
+            digraph {
+                graph [rankdir=LR]
+
+                label = "TestPackage"
+
+                4 [label="TestPackageTests"]
+
+                subgraph cluster_1 {
+                    label = "Sources"
+
+                    0 [label="Core"]
+                    1 [label="IndirectCore"]
+                    2 [label="IndirectCoreRoot"]
+                    3 [label="TestPackage"]
+
+                    0 -> 1
+                    1 -> 2
+                    3 -> 0 [label="@ /Sources/TestPackage/TestPackage.swift", color=red]
+                }
+
+                4 -> 3
+            }
+
+            """)
+        XCTAssertEqual(result.standardError, "")
+        XCTAssertEqual(result.terminationStatus, 0)
+    }
 }
 
 extension TargetDependencyCheckerTests {
