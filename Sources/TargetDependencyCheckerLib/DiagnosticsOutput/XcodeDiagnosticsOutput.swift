@@ -19,9 +19,9 @@ class XcodeDiagnosticsOutput: DiagnosticsOutput {
         let filePathAndLine = makeFilePathAndLine(file: file.path, importDecl: importDecl)
         
         print("""
-            \(filePathAndLine): warning: Import of framework \(importDecl.frameworkName) \
+            \(filePathAndLine): error: Import of framework \(importDecl.frameworkName) \
             in target \(target.name), but dependency is not declared in \
-            Package.swift manifest, neither directly or indirectly.
+            Package.swift manifest, either directly or indirectly.
             """)
     }
     

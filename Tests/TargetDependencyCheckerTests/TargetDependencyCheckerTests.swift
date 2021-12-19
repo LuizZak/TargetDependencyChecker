@@ -49,7 +49,7 @@ final class TargetDependencyCheckerTests: XCTestCase {
         let result = try runProcess(process)
         
         XCTAssert(result.standardOutput.contains("""
-            Sources/TestPackage/TestPackage.swift:1: warning: Import of framework Core in target TestPackage, but dependency is not declared in Package.swift manifest, neither directly or indirectly.
+            Sources/TestPackage/TestPackage.swift:1: error: Import of framework Core in target TestPackage, but dependency is not declared in Package.swift manifest, either directly or indirectly.
             
             """))
         XCTAssertEqual(result.standardError, "")
@@ -112,7 +112,7 @@ final class TargetDependencyCheckerTests: XCTestCase {
             """)
         })
         XCTAssert(lines.contains { $0.contains("""
-            Sources/TestPackage/TestPackage.swift:1: warning: Import of framework Core in target TestPackage, but dependency is not declared in Package.swift manifest, neither directly or indirectly.
+            Sources/TestPackage/TestPackage.swift:1: error: Import of framework Core in target TestPackage, but dependency is not declared in Package.swift manifest, either directly or indirectly.
             """)
         })
         XCTAssertEqual(result.standardError, "")
