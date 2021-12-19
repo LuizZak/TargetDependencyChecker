@@ -1,6 +1,6 @@
 import Foundation
 
-public enum CheckerEntryPoint {
+public enum DependencyCheckerEntryPoint {
     public struct Options {
         /// When specified, warns when importing a target that is not a direct
         /// dependency into another target.
@@ -19,6 +19,9 @@ public enum CheckerEntryPoint {
 
         /// Whether to colorize terminal output.
         public var colorized: Bool
+
+        /// Whether to print full file paths when producing terminal output.
+        public var printFullPaths: Bool
         
         // TODO: Tie in `includePattern` and `excludePattern` to command line
         // arguments
@@ -34,6 +37,7 @@ public enum CheckerEntryPoint {
                     packageDirectory: URL? = nil,
                     outputType: OutputType = .terminal,
                     colorized: Bool = true,
+                    printFullPaths: Bool = false,
                     includePattern: String? = nil,
                     excludePattern: String? = nil,
                     ignoreIncludes: Set<String> = []) {
@@ -42,10 +46,11 @@ public enum CheckerEntryPoint {
             self.warnOncePerFramework = warnOncePerFramework
             self.packageDirectory = packageDirectory
             self.outputType = outputType
+            self.colorized = colorized
+            self.printFullPaths = printFullPaths
             self.includePattern = includePattern
             self.excludePattern = excludePattern
             self.ignoreIncludes = ignoreIncludes
-            self.colorized = colorized
         }
     }
     
@@ -73,10 +78,10 @@ public enum CheckerEntryPoint {
         case terminal
         case xcode
 
-        func diagnosticsOutput(colorized: Bool) -> DiagnosticsOutput {
+        func diagnosticsOutput(colorized: Bool, printFullPaths: Bool) -> DiagnosticsOutput {
             switch self {
             case .terminal:
-                return TerminalDiagnosticsOutput(colorized: colorized)
+                return TerminalDiagnosticsOutput(colorized: colorized, printFullPaths: printFullPaths)
             case .xcode:
                 return XcodeDiagnosticsOutput()
             }

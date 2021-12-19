@@ -31,7 +31,7 @@ struct CheckCommand: ParsableCommand {
             that Xcode can detect when used as a build phase.
             
             """)
-    var outputType: CheckerEntryPoint.OutputType?
+    var outputType: DependencyCheckerEntryPoint.OutputType?
     
     @Flag(name: [.long, .customShort("o")], help: """
             When specified, omits warnings of violations for frameworks that \
@@ -51,6 +51,12 @@ struct CheckCommand: ParsableCommand {
             """)
     var noColor: Bool = false
     
+    @Flag(name: [.long, .customShort("f")], help: """
+            When specified along with --output-type terminal, prints the full path \
+            of each file in the diagnostics.
+            """)
+    var printFullPaths: Bool = false
+    
     @Option(help: """
             Ignores all includes in the string separated by commas provided to \
             this argument.
@@ -58,20 +64,21 @@ struct CheckCommand: ParsableCommand {
     var ignoreIncludes: String?
     
     func run() throws {
-        var options = CheckerEntryPoint.Options()
+        var options = DependencyCheckerEntryPoint.Options()
         
         options.packageDirectory = packagePath.map(URL.init(fileURLWithPath:)) ?? options.packageDirectory
         options.outputType = outputType ?? options.outputType
         options.warnOncePerFramework = warnOncePerFramework
         options.warnIndirectDependencies = warnIndirectDependencies
         options.colorized = !noColor
+        options.printFullPaths = printFullPaths
         options.ignoreIncludes = ignoreIncludes.map { $0.components(separatedBy: ",") }.map(Set.init) ?? options.ignoreIncludes
         
-        try CheckerEntryPoint.main(options: options)
+        try DependencyCheckerEntryPoint.main(options: options)
     }
 }
 
-extension CheckerEntryPoint.OutputType: ExpressibleByArgument {
+extension DependencyCheckerEntryPoint.OutputType: ExpressibleByArgument {
     public init?(argument: String) {
         guard let option = Self(rawValue: argument) else {
             return nil

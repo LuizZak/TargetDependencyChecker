@@ -20,8 +20,9 @@ final class TargetDependencyCheckerTests: XCTestCase {
         let result = try runProcess(process)
         
         XCTAssertEqual(result.standardOutput, """
-            Warning: Found import declaration for framework Core in target TestPackage in file Sources/TestPackage/TestPackage.swift, but dependency is not declared in Package.swift manifest, neither directly or indirectly.
-            Warning: Found import declaration for framework SwiftPM in target TestPackage in file Sources/TestPackage/TestPackage.swift, but dependency is not declared in Package.swift manifest, neither directly or indirectly.
+            Analyzing package TestPackage...
+            !Warning!: TestPackage: Import of framework Core in file Sources/TestPackage/TestPackage.swift:1 is not declared as a dependency, either directly or indirectly, in Package.swift manifest.
+            !Warning!: TestPackage: Import of framework SwiftPM in file Sources/TestPackage/TestPackage.swift:2 is not declared as a dependency, either directly or indirectly, in Package.swift manifest.
             Analysis complete! Found 2 issue(s).
 
             """)
@@ -74,9 +75,10 @@ final class TargetDependencyCheckerTests: XCTestCase {
         let result = try runProcess(process)
         
         XCTAssertEqual(result.standardOutput, """
-            Indirect-dependency warning: Found import declaration for framework IndirectCoreRoot in target Core in file Sources/Core/Source.swift, but dependency is not declared explicitly in Package.swift manifest.
-            Warning: Found import declaration for framework Core in target TestPackage in file Sources/TestPackage/TestPackage.swift, but dependency is not declared in Package.swift manifest, neither directly or indirectly.
-            Warning: Found import declaration for framework SwiftPM in target TestPackage in file Sources/TestPackage/TestPackage.swift, but dependency is not declared in Package.swift manifest, neither directly or indirectly.
+            Analyzing package TestPackage...
+            Indirect-dependency in target Core: Import of framework IndirectCoreRoot in file Sources/Core/Source.swift:2 is not declared as a direct dependency Package.swift manifest.
+            !Warning!: TestPackage: Import of framework Core in file Sources/TestPackage/TestPackage.swift:1 is not declared as a dependency, either directly or indirectly, in Package.swift manifest.
+            !Warning!: TestPackage: Import of framework SwiftPM in file Sources/TestPackage/TestPackage.swift:2 is not declared as a dependency, either directly or indirectly, in Package.swift manifest.
             Analysis complete! Found 3 issue(s).
 
             """)
@@ -137,7 +139,8 @@ final class TargetDependencyCheckerTests: XCTestCase {
         let result = try runProcess(process)
 
         XCTAssertEqual(result.standardOutput, """
-            Warning: Found import declaration for framework Core in target TestPackage in file Sources/TestPackage/TestPackage.swift, but dependency is not declared in Package.swift manifest, neither directly or indirectly.
+            Analyzing package TestPackage...
+            !Warning!: TestPackage: Import of framework Core in file Sources/TestPackage/TestPackage.swift:1 is not declared as a dependency, either directly or indirectly, in Package.swift manifest.
             Analysis complete! Found 1 issue(s).
 
             """)
@@ -165,6 +168,7 @@ final class TargetDependencyCheckerTests: XCTestCase {
         let result = try runProcess(process)
 
         XCTAssertEqual(result.standardOutput, """
+            Analyzing package TestPackage...
             Analysis complete! Found 0 issue(s).
             
             """)

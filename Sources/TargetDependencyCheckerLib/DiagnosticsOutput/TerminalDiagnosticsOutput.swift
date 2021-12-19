@@ -4,46 +4,60 @@ import Console
 
 class TerminalDiagnosticsOutput: DiagnosticsOutput {
     private var _warningsCount: Int = 0
-
-    var colorized: Bool
-
-    init(colorized: Bool) {
-        self.colorized = colorized
+    private var _printFullPaths: Bool
+    private var _colorized: Bool
+    
+    init(colorized: Bool, printFullPaths: Bool) {
+        self._colorized = colorized
+        self._printFullPaths = printFullPaths
     }
 
-    func reportNonDependencyImport(importDecl: ImportedFrameworkDeclaration,
+    func startReport(_ checker: DependencyChecker) {
+        _print("Analyzing package \(packageName: checker.packageManager.package.name)...")
+    }
+
+    func reportNonDependencyImport(_ checker: DependencyChecker,
+                                   importDecl: ImportedFrameworkDeclaration,
                                    target: Target,
                                    file: SourceFile,
                                    relativePath: String) {
         _warningsCount += 1
-
+        
         _print("""
-            \("Warning:", color: .yellow) Found import declaration for framework \(importDecl.frameworkName, color: .cyan) in target \(target.name, color: .cyan) \
-            in file \(relativePath, color: .magenta), but dependency is not declared in Package.swift manifest, neither \
-            directly or indirectly.
+            \(critical: "!Warning!:") \
+            \(targetName: target.name): \
+            Import of framework \(frameworkName: importDecl.frameworkName) \
+            in file \(filePath: _selectPath(file: file, relativePath: relativePath)):\(lineNumber: importDecl.location.line) \
+            is not declared as a dependency, either directly or indirectly, in Package.swift manifest.
             """)
     }
     
-    func reportNonDirectDependencyImport(importDecl: ImportedFrameworkDeclaration,
+    func reportNonDirectDependencyImport(_ checker: DependencyChecker,
+                                         importDecl: ImportedFrameworkDeclaration,
                                          target: Target,
                                          file: SourceFile,
                                          relativePath: String) {
         _warningsCount += 1
         
         _print("""
-            \("Indirect-dependency warning:", color: .yellow) Found import declaration for \
-            framework \(importDecl.frameworkName) in target \(target.name) in file \
-            \(relativePath), but dependency is not declared explicitly \
-            in Package.swift manifest.
+            \(warning: "Indirect-dependency") \
+            in target \(targetName: target.name): \
+            Import of framework \(frameworkName: importDecl.frameworkName) \
+            in file \(filePath: _selectPath(file: file, relativePath: relativePath)):\(lineNumber: importDecl.location.line) \
+            is not declared as a direct dependency Package.swift manifest.
             """)
     }
 
-    func finishReport() {
+    func finishReport(_ checker: DependencyChecker) {
         _print("Analysis complete! Found \(_warningsCount, color: .cyan) issue(s).")
     }
 
+    private func _selectPath(file: SourceFile, relativePath: String) -> String {
+        _printFullPaths ? file.path.path : relativePath
+    }
+
     private func _print(_ string: ConsoleColorInterpolatedString) {
-        print(string.toString(colorized: colorized))
+        print(string.toString(colorized: _colorized))
     }
 }
 
@@ -69,27 +83,69 @@ private struct ConsoleColorInterpolatedString: ExpressibleByStringInterpolation 
     }
 
     struct StringInterpolation: StringInterpolationProtocol {
+        private let _criticalColor: ConsoleColor = .red
+        private let _warningColor: ConsoleColor = .yellow
+        private let _projectNameColor: ConsoleColor = .cyan
+        private let _frameworkNameColor: ConsoleColor = .cyan
+        private let _targetNameColor: ConsoleColor = .cyan
+        private let _lineNumberColor: ConsoleColor = .cyan
+        private let _filePathColor: ConsoleColor = .magenta
+        private let _fileNameColor: ConsoleColor = .cyan
+
+        private var _currentColor: ConsoleColor? = nil
+
         var output: [(String, ConsoleColor?)] = []
-        var currentColor: ConsoleColor? = nil
 
         init(literalCapacity: Int, interpolationCount: Int) {
             output.reserveCapacity(literalCapacity)
         }
 
         mutating func appendInterpolation(setColor: ConsoleColor?) {
-            currentColor = setColor
+            _currentColor = setColor
         }
 
         mutating func appendLiteral(_ literal: String) {
-            _append(literal, color: currentColor)
+            _append(literal, color: _currentColor)
+        }
+
+        mutating func appendInterpolation<T>(_ literal: T) {
+            _append("\(literal)", color: _currentColor)
+        }
+
+        mutating func appendInterpolation(critical: String) {
+            _append(critical, color: _criticalColor)
+        }
+
+        mutating func appendInterpolation(warning: String) {
+            _append(warning, color: _warningColor)
+        }
+
+        mutating func appendInterpolation<T>(frameworkName: T) {
+            _append("\(frameworkName)", color: _frameworkNameColor)
+        }
+
+        mutating func appendInterpolation<T>(targetName: T) {
+            _append("\(targetName)", color: _targetNameColor)
+        }
+
+        mutating func appendInterpolation(lineNumber: Int?) {
+            _append("\(lineNumber?.description ?? "<unknown>")", color: _lineNumberColor)
+        }
+
+        mutating func appendInterpolation<T>(packageName: T) {
+            _append("\(packageName)", color: _projectNameColor)
+        }
+
+        mutating func appendInterpolation(filePath: String) {
+            let url = URL(fileURLWithPath: filePath, relativeTo: nil)
+
+            _append(url.deletingLastPathComponent().relativePath, color: _filePathColor)
+            _append("/", color: _filePathColor)
+            _append(url.lastPathComponent, color: _fileNameColor)
         }
 
         mutating func appendInterpolation<T>(_ literal: T, color: ConsoleColor) {
             _append("\(literal)", color: color)
-        }
-
-        mutating func appendInterpolation<T>(_ literal: T) {
-            _append("\(literal)", color: currentColor)
         }
 
         private mutating func _append(_ text: String, color: ConsoleColor?) {

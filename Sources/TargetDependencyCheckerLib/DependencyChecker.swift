@@ -1,13 +1,13 @@
 import Foundation
 
 public class DependencyChecker {
-    let options: CheckerEntryPoint.Options
+    let options: DependencyCheckerEntryPoint.Options
     let packageManager: PackageManager
     let fileManagerDelegate: FileManagerDelegate
     
     public weak var delegate: DependencyCheckerDelegate?
     
-    init(options: CheckerEntryPoint.Options, packageManager: PackageManager, fileManagerDelegate: FileManagerDelegate) {
+    init(options: DependencyCheckerEntryPoint.Options, packageManager: PackageManager, fileManagerDelegate: FileManagerDelegate) {
         self.options = options
         self.packageManager = packageManager
         self.fileManagerDelegate = fileManagerDelegate
@@ -23,7 +23,8 @@ public class DependencyChecker {
                 excludePattern: options.excludePattern
             )
         
-        let diagnosticsTarget = options.outputType.diagnosticsOutput(colorized: options.colorized)
+        let diagnosticsTarget = options.outputType.diagnosticsOutput(colorized: options.colorized, printFullPaths: options.printFullPaths)
+        diagnosticsTarget.startReport(self)
         
         for inspection in inspections {
             try inspect(
@@ -33,7 +34,7 @@ public class DependencyChecker {
             )
         }
 
-        diagnosticsTarget.finishReport()
+        diagnosticsTarget.finishReport(self)
     }
     
     func inspect(inspection: FileImportInspection,
@@ -69,17 +70,21 @@ public class DependencyChecker {
             if !dependencyGraph.hasPath(from: importDecl.frameworkName, to: target.name) {
                 diagnosticsTarget
                     .reportNonDependencyImport(
+                        self,
                         importDecl: importDecl,
                         target: target,
                         file: file,
-                        relativePath: relativePath)
+                        relativePath: relativePath
+                    )
             } else if options.warnIndirectDependencies && !dependencyGraph.hasEdge(from: importDecl.frameworkName, to: target.name) {
                 diagnosticsTarget
                     .reportNonDirectDependencyImport(
+                        self,
                         importDecl: importDecl,
                         target: target,
                         file: file,
-                        relativePath: relativePath)
+                        relativePath: relativePath
+                    )
             }
         }
     }

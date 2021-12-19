@@ -5,8 +5,13 @@ class XcodeDiagnosticsOutput: DiagnosticsOutput {
     func makeFilePathAndLine(file: URL, importDecl: ImportedFrameworkDeclaration) -> String {
         return "\(file.path):\(importDecl.location.line ?? 0)"
     }
+
+    func startReport(_ checker: DependencyChecker) {
+
+    }
     
-    func reportNonDependencyImport(importDecl: ImportedFrameworkDeclaration,
+    func reportNonDependencyImport(_ checker: DependencyChecker,
+                                   importDecl: ImportedFrameworkDeclaration,
                                    target: Target,
                                    file: SourceFile,
                                    relativePath: String) {
@@ -20,7 +25,8 @@ class XcodeDiagnosticsOutput: DiagnosticsOutput {
             """)
     }
     
-    func reportNonDirectDependencyImport(importDecl: ImportedFrameworkDeclaration,
+    func reportNonDirectDependencyImport(_ checker: DependencyChecker,
+                                         importDecl: ImportedFrameworkDeclaration,
                                          target: Target,
                                          file: SourceFile,
                                          relativePath: String) {
@@ -34,7 +40,7 @@ class XcodeDiagnosticsOutput: DiagnosticsOutput {
             """)
     }
 
-    func finishReport() {
+    func finishReport(_ checker: DependencyChecker) {
         
     }
 }

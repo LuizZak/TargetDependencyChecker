@@ -1,10 +1,17 @@
 @testable import TargetDependencyCheckerLib
 
 class PackageBuilder {
-    var targets: [Target] = []
+    var _name: String = "TestPackage"
+    var _targets: [Target] = []
     
     init(_ closure: (PackageBuilder) -> Void = { _ in }) {
         closure(self)
+    }
+
+    @discardableResult
+    func name(_ name: String) -> PackageBuilder {
+        _name = name
+        return self
     }
     
     @discardableResult
@@ -12,13 +19,13 @@ class PackageBuilder {
         let builder = TargetBuilder(name: name, path: path, type: type)
         closure(builder)
         
-        targets.append(builder.build())
+        _targets.append(builder.build())
         
         return self
     }
     
     func build() -> Package {
-        return Package(targets: targets)
+        return Package(name: _name, targets: _targets)
     }
 }
 
