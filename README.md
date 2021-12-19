@@ -1,6 +1,6 @@
 # TargetDependencyChecker
 
-A simple command-line tool for analysing dependencies in Swift Package Manager projects, as well as catch any non-dependency import errors that can arise in larger target graphs.
+A simple command-line tool for analysing (local) dependencies between targets defined in Swift Package Manager projects, as well as catch any non-dependency import errors that can arise in larger target graphs.
 
 Requirements:
 ----
