@@ -53,14 +53,14 @@ class TargetBuilder {
     }
     
     @discardableResult
-    func addDependency(_ name: String) -> TargetBuilder {
-        _dependencies.append(TargetDependency(name: name))
+    func addDependency(_ name: String, type: TargetDependency.TargetDependencyType = .byName) -> TargetBuilder {
+        _dependencies.append(TargetDependency(name: name, type: type))
         return self
     }
     
     @discardableResult
-    func addDependencies(_ names: String...) -> TargetBuilder {
-        _dependencies.append(contentsOf: names.map(TargetDependency.init))
+    func addDependencies(_ names: String..., type: TargetDependency.TargetDependencyType = .byName) -> TargetBuilder {
+        _dependencies.append(contentsOf: names.map { .init(name: $0, type: type) })
         return self
     }
     

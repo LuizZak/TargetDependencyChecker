@@ -44,7 +44,7 @@ public class DependencyChecker {
             String(file.path.path.replacingOccurrences(of: rootPath, with: "").drop(while: { $0 == "/" }))
         
         for importDecl in importedFrameworkDeclarations {
-            // Ignore system frameworks that are implicitly imported.
+            // Ignore system frameworks that are implicitly linked.
             if delegate?.dependencyChecker(self, isDependencySystemFramework: importDecl.frameworkName) == true {
                 continue
             }

@@ -1,4 +1,4 @@
-// swift-tools-version:5.0
+// swift-tools-version:5.5
 // The swift-tools-version declares the minimum version of Swift required to build this package.
 
 import PackageDescription
@@ -23,7 +23,10 @@ let package = Package(
             dependencies: ["IndirectCoreRoot"]),
         .target(
             name: "Core",
-            dependencies: ["IndirectCore"]),
+            dependencies: [
+                .product(name: "SwiftPM", package: "swift-package-manager"),
+                "IndirectCore"
+            ]),
         .target(
             name: "TestPackage",
             dependencies: []),

@@ -20,7 +20,27 @@ struct Target: Decodable, Hashable {
         
         let dep = try container.decode([DependenciesArray].self, forKey: .dependencies)
         
-        dependencies = dep.flatMap { $0.byName?.compactMap { $0.map(TargetDependency.init) } ?? [] }
+        dependencies = []
+
+        for dependency in dep {
+            if let byName = dependency.byName {
+                for byName in byName.compactMap({$0}) {
+                    dependencies.append(
+                        .init(name: byName, type: .byName)
+                    )
+                }
+            }
+            if let product = dependency.product {
+                let productArgs = product.compactMap({$0})
+                guard productArgs.count == 2 else {
+                    continue
+                }
+
+                dependencies.append(
+                    .init(name: productArgs[0], type: .product(package: productArgs[1]))
+                )
+            }
+        }
     }
     
     enum TargetType: String, Decodable {
@@ -38,9 +58,16 @@ struct Target: Decodable, Hashable {
 
     struct DependenciesArray: Decodable {
         var byName: [String?]?
+        var product: [String?]?
     }
 }
 
-struct TargetDependency: Decodable, Hashable {
+struct TargetDependency: Hashable {
     var name: String
+    var type: TargetDependencyType
+    
+    enum TargetDependencyType: Hashable {
+        case byName
+        case product(package: String)
+    }
 }
