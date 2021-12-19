@@ -45,6 +45,12 @@ struct CheckCommand: ParsableCommand {
             """)
     var warnIndirectDependencies: Bool = false
     
+    @Flag(name: [.long, .customShort("c")], help: """
+            When specified along with --output-type terminal, produces a non-colorized \
+            output in stdout.
+            """)
+    var noColor: Bool = false
+    
     @Option(help: """
             Ignores all includes in the string separated by commas provided to \
             this argument.
@@ -58,6 +64,7 @@ struct CheckCommand: ParsableCommand {
         options.outputType = outputType ?? options.outputType
         options.warnOncePerFramework = warnOncePerFramework
         options.warnIndirectDependencies = warnIndirectDependencies
+        options.colorized = !noColor
         options.ignoreIncludes = ignoreIncludes.map { $0.components(separatedBy: ",") }.map(Set.init) ?? options.ignoreIncludes
         
         try CheckerEntryPoint.main(options: options)

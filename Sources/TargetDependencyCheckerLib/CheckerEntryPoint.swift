@@ -16,6 +16,9 @@ public enum CheckerEntryPoint {
         
         /// Specifies the format of the output.
         public var outputType: OutputType
+
+        /// Whether to colorize terminal output.
+        public var colorized: Bool
         
         // TODO: Tie in `includePattern` and `excludePattern` to command line
         // arguments
@@ -30,6 +33,7 @@ public enum CheckerEntryPoint {
                     warnOncePerFramework: Bool = false,
                     packageDirectory: URL? = nil,
                     outputType: OutputType = .terminal,
+                    colorized: Bool = true,
                     includePattern: String? = nil,
                     excludePattern: String? = nil,
                     ignoreIncludes: Set<String> = []) {
@@ -41,6 +45,7 @@ public enum CheckerEntryPoint {
             self.includePattern = includePattern
             self.excludePattern = excludePattern
             self.ignoreIncludes = ignoreIncludes
+            self.colorized = colorized
         }
     }
     
@@ -67,11 +72,11 @@ public enum CheckerEntryPoint {
     public enum OutputType: String {
         case terminal
         case xcode
-        
-        var diagnosticsOutput: DiagnosticsOutput {
+
+        func diagnosticsOutput(colorized: Bool) -> DiagnosticsOutput {
             switch self {
             case .terminal:
-                return TerminalDiagnosticsOutput()
+                return TerminalDiagnosticsOutput(colorized: colorized)
             case .xcode:
                 return XcodeDiagnosticsOutput()
             }

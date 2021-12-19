@@ -2,6 +2,15 @@
   "object": {
     "pins": [
       {
+        "package": "Console",
+        "repositoryURL": "https://github.com/LuizZak/console.git",
+        "state": {
+          "branch": null,
+          "revision": "a7c1af26ffdb6fd2dbb1bffe714b5950ce738f70",
+          "version": "0.8.0"
+        }
+      },
+      {
         "package": "swift-argument-parser",
         "repositoryURL": "https://github.com/apple/swift-argument-parser.git",
         "state": {

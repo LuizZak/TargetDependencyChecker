@@ -33,4 +33,8 @@ class XcodeDiagnosticsOutput: DiagnosticsOutput {
             is not declared explicitly in Package.swift manifest.
             """)
     }
+
+    func finishReport() {
+        
+    }
 }

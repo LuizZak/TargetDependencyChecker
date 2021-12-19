@@ -13,7 +13,8 @@ final class TargetDependencyCheckerTests: XCTestCase {
         process.executableURL = binary
         process.arguments = [
             "--package-path",
-            "\(packageRootPath)/TestPackage"
+            "\(packageRootPath)/TestPackage",
+            "--no-color",
         ]
         
         let result = try runProcess(process)
@@ -21,6 +22,7 @@ final class TargetDependencyCheckerTests: XCTestCase {
         XCTAssertEqual(result.standardOutput, """
             Warning: Found import declaration for framework Core in target TestPackage in file Sources/TestPackage/TestPackage.swift, but dependency is not declared in Package.swift manifest, neither directly or indirectly.
             Warning: Found import declaration for framework SwiftPM in target TestPackage in file Sources/TestPackage/TestPackage.swift, but dependency is not declared in Package.swift manifest, neither directly or indirectly.
+            Analysis complete! Found 2 issue(s).
 
             """)
         XCTAssertEqual(result.standardError, "")
@@ -40,7 +42,7 @@ final class TargetDependencyCheckerTests: XCTestCase {
             "--package-path",
             "\(packageRootPath)/TestPackage",
             "--output-type",
-            "xcode"
+            "xcode",
         ]
         
         let result = try runProcess(process)
@@ -65,7 +67,8 @@ final class TargetDependencyCheckerTests: XCTestCase {
         process.arguments = [
             "--package-path",
             "\(packageRootPath)/TestPackage",
-            "--warn-indirect-dependencies"
+            "--warn-indirect-dependencies",
+            "--no-color",
         ]
         
         let result = try runProcess(process)
@@ -74,7 +77,8 @@ final class TargetDependencyCheckerTests: XCTestCase {
             Indirect-dependency warning: Found import declaration for framework IndirectCoreRoot in target Core in file Sources/Core/Source.swift, but dependency is not declared explicitly in Package.swift manifest.
             Warning: Found import declaration for framework Core in target TestPackage in file Sources/TestPackage/TestPackage.swift, but dependency is not declared in Package.swift manifest, neither directly or indirectly.
             Warning: Found import declaration for framework SwiftPM in target TestPackage in file Sources/TestPackage/TestPackage.swift, but dependency is not declared in Package.swift manifest, neither directly or indirectly.
-            
+            Analysis complete! Found 3 issue(s).
+
             """)
         XCTAssertEqual(result.standardError, "")
         XCTAssertEqual(result.terminationStatus, 0)
@@ -94,7 +98,7 @@ final class TargetDependencyCheckerTests: XCTestCase {
             "\(packageRootPath)/TestPackage",
             "--warn-indirect-dependencies",
             "--output-type",
-            "xcode"
+            "xcode",
         ]
         
         let result = try runProcess(process)
@@ -125,14 +129,16 @@ final class TargetDependencyCheckerTests: XCTestCase {
         process.arguments = [
             "--package-path",
             "\(packageRootPath)/TestPackage",
+            "--no-color",
             "--ignore-includes",
-            "SwiftPM"
+            "SwiftPM",
         ]
 
         let result = try runProcess(process)
 
         XCTAssertEqual(result.standardOutput, """
             Warning: Found import declaration for framework Core in target TestPackage in file Sources/TestPackage/TestPackage.swift, but dependency is not declared in Package.swift manifest, neither directly or indirectly.
+            Analysis complete! Found 1 issue(s).
 
             """)
         XCTAssertEqual(result.standardError, "")
@@ -151,13 +157,17 @@ final class TargetDependencyCheckerTests: XCTestCase {
         process.arguments = [
             "--package-path",
             "\(packageRootPath)/TestPackage",
+            "--no-color",
             "--ignore-includes",
             "SwiftPM,Core"
         ]
 
         let result = try runProcess(process)
 
-        XCTAssertEqual(result.standardOutput, "")
+        XCTAssertEqual(result.standardOutput, """
+            Analysis complete! Found 0 issue(s).
+            
+            """)
         XCTAssertEqual(result.standardError, "")
         XCTAssertEqual(result.terminationStatus, 0)
     }
@@ -175,7 +185,7 @@ final class TargetDependencyCheckerTests: XCTestCase {
             "graph",
             "--package-path",
             "\(packageRootPath)/TestPackage",
-            "--include-indirect"
+            "--include-indirect",
         ]
 
         let result = try runProcess(process)
@@ -213,7 +223,7 @@ final class TargetDependencyCheckerTests: XCTestCase {
             "graph",
             "--package-path",
             "\(packageRootPath)/TestPackage",
-            "--include-tests"
+            "--include-tests",
         ]
 
         let result = try runProcess(process)
@@ -253,7 +263,7 @@ final class TargetDependencyCheckerTests: XCTestCase {
             "--package-path",
             "\(packageRootPath)/TestPackage",
             "--include-tests",
-            "--include-folder-hierarchy"
+            "--include-folder-hierarchy",
         ]
 
         let result = try runProcess(process)

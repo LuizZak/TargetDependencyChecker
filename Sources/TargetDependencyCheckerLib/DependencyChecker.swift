@@ -23,19 +23,26 @@ public class DependencyChecker {
                 excludePattern: options.excludePattern
             )
         
+        let diagnosticsTarget = options.outputType.diagnosticsOutput(colorized: options.colorized)
+        
         for inspection in inspections {
-            try inspect(inspection: inspection, visitedImports: &visitedImports)
+            try inspect(
+                inspection: inspection,
+                visitedImports: &visitedImports,
+                diagnosticsTarget: diagnosticsTarget
+            )
         }
+
+        diagnosticsTarget.finishReport()
     }
     
     func inspect(inspection: FileImportInspection,
-                 visitedImports: inout Set<ImportVisit>) throws {
+                 visitedImports: inout Set<ImportVisit>,
+                 diagnosticsTarget: DiagnosticsOutput) throws {
         
         let file = inspection.file
         let target = inspection.target
         let importedFrameworkDeclarations = inspection.importedFrameworks
-        
-        let diagnosticsTarget = options.outputType.diagnosticsOutput
         
         let rootPath = packageManager.packageRootUrl.path
         let dependencyGraph = try packageManager.dependencyGraph()

@@ -15,4 +15,7 @@ protocol DiagnosticsOutput {
                                          target: Target,
                                          file: SourceFile,
                                          relativePath: String)
+    
+    /// Called to indicate that the checker has finished analysis.
+    func finishReport()
 }
