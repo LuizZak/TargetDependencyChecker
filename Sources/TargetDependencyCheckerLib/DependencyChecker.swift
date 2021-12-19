@@ -14,7 +14,8 @@ public class DependencyChecker {
     }
     
     func inspect() throws {
-        var visitedImports: Set<ImportVisit> = []
+        let diagnosticsTarget = options.outputType.diagnosticsOutput(colorized: options.colorized, printFullPaths: options.printFullPaths)
+        diagnosticsTarget.startReport(self)
         
         let inspections =
             try DependencyChecker.collectInspectionTargets(
@@ -23,9 +24,7 @@ public class DependencyChecker {
                 excludePattern: options.excludePattern
             )
         
-        let diagnosticsTarget = options.outputType.diagnosticsOutput(colorized: options.colorized, printFullPaths: options.printFullPaths)
-        diagnosticsTarget.startReport(self)
-        
+        var visitedImports: Set<ImportVisit> = []
         for inspection in inspections {
             try inspect(
                 inspection: inspection,
