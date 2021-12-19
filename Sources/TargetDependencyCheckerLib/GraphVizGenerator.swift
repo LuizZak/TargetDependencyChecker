@@ -31,7 +31,7 @@ public class GraphVizGenerator {
                 }
             }
 
-            return Array(components[index...])
+            return Array(components[index..<components.count - 1])
         }
 
         let inspections = try DependencyChecker.collectInspectionTargets(
