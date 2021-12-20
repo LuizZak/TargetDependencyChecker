@@ -65,8 +65,10 @@ public class DependencyChecker {
                     continue
                 }
             }
-            
-            if !dependencyGraph.hasPath(from: importDecl.frameworkName, to: target.name) {
+
+            // Attempt to find a path, reporting an undeclared dependency if none
+            // is found.
+            guard let path = dependencyGraph.shortestPath(from: importDecl.frameworkName, to: target.name) else {
                 diagnosticsTarget
                     .reportNonDependencyImport(
                         self,
@@ -75,12 +77,17 @@ public class DependencyChecker {
                         file: file,
                         relativePath: relativePath
                     )
-            } else if options.warnIndirectDependencies && !dependencyGraph.hasEdge(from: importDecl.frameworkName, to: target.name) {
+                
+                continue
+            }
+
+            if options.warnIndirectDependencies && path.count > 2 {
                 diagnosticsTarget
                     .reportNonDirectDependencyImport(
                         self,
                         importDecl: importDecl,
                         target: target,
+                        dependenciesPath: path.reversed(),
                         file: file,
                         relativePath: relativePath
                     )

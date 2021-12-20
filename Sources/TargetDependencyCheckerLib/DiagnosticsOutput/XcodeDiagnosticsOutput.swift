@@ -28,6 +28,7 @@ class XcodeDiagnosticsOutput: DiagnosticsOutput {
     func reportNonDirectDependencyImport(_ checker: DependencyChecker,
                                          importDecl: ImportedFrameworkDeclaration,
                                          target: Target,
+                                         dependenciesPath: [String],
                                          file: SourceFile,
                                          relativePath: String) {
 

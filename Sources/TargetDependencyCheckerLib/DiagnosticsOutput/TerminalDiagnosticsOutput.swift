@@ -35,6 +35,7 @@ class TerminalDiagnosticsOutput: DiagnosticsOutput {
     func reportNonDirectDependencyImport(_ checker: DependencyChecker,
                                          importDecl: ImportedFrameworkDeclaration,
                                          target: Target,
+                                         dependenciesPath: [String],
                                          file: SourceFile,
                                          relativePath: String) {
         _warningsCount += 1
@@ -44,7 +45,7 @@ class TerminalDiagnosticsOutput: DiagnosticsOutput {
             in target \(targetName: target.name): \
             Import of framework \(frameworkName: importDecl.frameworkName) \
             in file \(filePath: _selectPath(file: file, relativePath: relativePath)):\(lineNumber: importDecl.location.line) \
-            is not declared as a direct dependency Package.swift manifest.
+            with \(dependenciesPath.count - 2) level(s) of indirection: \(dependenciesPath: dependenciesPath)
             """)
     }
 
@@ -88,6 +89,7 @@ private struct ConsoleColorInterpolatedString: ExpressibleByStringInterpolation 
         private let _projectNameColor: ConsoleColor = .cyan
         private let _frameworkNameColor: ConsoleColor = .cyan
         private let _targetNameColor: ConsoleColor = .cyan
+        private let _indirectTargetNameColor: ConsoleColor = .blue
         private let _lineNumberColor: ConsoleColor = .cyan
         private let _filePathColor: ConsoleColor = .magenta
         private let _fileNameColor: ConsoleColor = .cyan
@@ -130,6 +132,22 @@ private struct ConsoleColorInterpolatedString: ExpressibleByStringInterpolation 
 
         mutating func appendInterpolation(lineNumber: Int?) {
             _append("\(lineNumber?.description ?? "<unknown>")", color: _lineNumberColor)
+        }
+
+        mutating func appendInterpolation(dependenciesPath: [String]) {
+            guard dependenciesPath.count > 2 else {
+                return
+            }
+            
+            _append("\(dependenciesPath[0])", color: _targetNameColor)
+
+            for dependency in dependenciesPath.dropFirst().dropLast() {
+                _append(" -> ", color: nil)
+                _append("\(dependency)", color: _indirectTargetNameColor)
+            }
+
+            _append(" -> ", color: nil)
+            _append("\(dependenciesPath[dependenciesPath.count - 1])", color: _targetNameColor)
         }
 
         mutating func appendInterpolation<T>(packageName: T) {

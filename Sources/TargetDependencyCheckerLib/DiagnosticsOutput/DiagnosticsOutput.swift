@@ -21,6 +21,7 @@ protocol DiagnosticsOutput {
         _ checker: DependencyChecker,
         importDecl: ImportedFrameworkDeclaration,
         target: Target,
+        dependenciesPath: [String],
         file: SourceFile,
         relativePath: String
     )

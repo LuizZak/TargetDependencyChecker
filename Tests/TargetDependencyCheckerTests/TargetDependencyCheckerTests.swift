@@ -76,7 +76,7 @@ final class TargetDependencyCheckerTests: XCTestCase {
         
         XCTAssertEqual(result.standardOutput, """
             Analyzing package TestPackage...
-            Indirect-dependency in target Core: Import of framework IndirectCoreRoot in file Sources/Core/Source.swift:2 is not declared as a direct dependency Package.swift manifest.
+            Indirect-dependency in target Core: Import of framework IndirectCoreRoot in file Sources/Core/Source.swift:2 with 1 level(s) of indirection: Core -> IndirectCore -> IndirectCoreRoot
             !Warning!: TestPackage: Import of framework Core in file Sources/TestPackage/TestPackage.swift:1 is not declared as a dependency, either directly or indirectly, in Package.swift manifest.
             !Warning!: TestPackage: Import of framework SwiftPM in file Sources/TestPackage/TestPackage.swift:2 is not declared as a dependency, either directly or indirectly, in Package.swift manifest.
             Analysis complete! Found 3 issue(s).
