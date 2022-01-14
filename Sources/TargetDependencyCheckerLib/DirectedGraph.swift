@@ -284,7 +284,7 @@ public extension DirectedGraph {
         return path?.allNodes
     }
     
-    /// Returns the any of the shortest paths found between two nodes.
+    /// Returns any of the shortest paths found between two nodes.
     ///
     /// If `start == end`, `[start]` is returned.
     ///
