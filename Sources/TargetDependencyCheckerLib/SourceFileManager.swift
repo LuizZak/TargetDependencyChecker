@@ -1,5 +1,6 @@
 import Foundation
 import SwiftSyntax
+import SwiftSyntaxParser
 
 class SourceFileManager {
     let sourceFile: SourceFile
