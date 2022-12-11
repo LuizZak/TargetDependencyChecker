@@ -1,0 +1,22 @@
+{
+    "configurations": [
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug TargetDependencyChecker",
+            "program": "${workspaceFolder:TargetDependencyChecker}/.build/debug/TargetDependencyChecker",
+            "args": [],
+            "cwd": "${workspaceFolder:TargetDependencyChecker}",
+            "preLaunchTask": "swift: Build Debug TargetDependencyChecker"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Release TargetDependencyChecker",
+            "program": "${workspaceFolder:TargetDependencyChecker}/.build/release/TargetDependencyChecker",
+            "args": [],
+            "cwd": "${workspaceFolder:TargetDependencyChecker}",
+            "preLaunchTask": "swift: Build Release TargetDependencyChecker"
+        }
+    ]
+}
