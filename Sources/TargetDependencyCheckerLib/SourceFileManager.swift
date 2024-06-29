@@ -1,6 +1,6 @@
 import Foundation
 import SwiftSyntax
-import SwiftSyntaxParser
+import SwiftParser
 
 class SourceFileManager {
     let sourceFile: SourceFile
@@ -16,9 +16,9 @@ class SourceFileManager {
             try fileManagerDelegate
                 .contentsOfFile(at: sourceFile.path, encoding: .utf8)
         
-        let file = try SyntaxParser.parse(source: source)
+        let file = SwiftParser.Parser.parse(source: source)
         let sourceLocationConverter =
-            SourceLocationConverter(file: sourceFile.path.path, source: file.description)
+            SourceLocationConverter(fileName: sourceFile.path.path, tree: file)
         
         let visitor = ImportVisitor(sourceLocationConverter: sourceLocationConverter)
         visitor.walk(file)
@@ -32,6 +32,7 @@ class SourceFileManager {
         
         init(sourceLocationConverter: SourceLocationConverter) {
             self.sourceLocationConverter = sourceLocationConverter
+            super.init(viewMode: .fixedUp)
         }
         
         override func visit(_ node: CodeBlockItemSyntax) -> SyntaxVisitorContinueKind {
@@ -43,7 +44,7 @@ class SourceFileManager {
         }
         
         func inspectImport(_ node: ImportDeclSyntax) {
-            if node.attributes == nil && node.path.count == 1 {
+            if node.attributes.count == 0 && node.path.count == 1 {
                 let location =
                     node.startLocation(converter: sourceLocationConverter,
                                        afterLeadingTrivia: true)

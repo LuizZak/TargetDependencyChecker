@@ -20,11 +20,11 @@
         }
       },
       {
-        "package": "SwiftSyntax",
+        "package": "swift-syntax",
         "repositoryURL": "https://github.com/apple/swift-syntax",
         "state": {
-          "branch": "0.50700.1",
-          "revision": "72d3da66b085c2299dd287c2be3b92b5ebd226de",
+          "branch": "509.1.0",
+          "revision": "43c802fb7f96e090dde015344a94b5e85779eff1",
           "version": null
         }
       }

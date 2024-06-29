@@ -3,7 +3,7 @@ import SwiftSyntax
 
 class XcodeDiagnosticsOutput: DiagnosticsOutput {
     func makeFilePathAndLine(file: URL, importDecl: ImportedFrameworkDeclaration) -> String {
-        return "\(file.path):\(importDecl.location.line ?? 0)"
+        return "\(file.path):\(importDecl.location.line)"
     }
 
     func startReport(_ checker: DependencyChecker) {

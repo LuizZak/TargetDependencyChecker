@@ -92,9 +92,10 @@ public class GraphVizGenerator {
                     continue
                 }
 
-                let filePath = importDecl.location.file.map { file in
-                    file.replacingOccurrences(of: packageManager.packageRootUrl.path, with: "")
-                }
+                let filePath = importDecl
+                    .location
+                    .file
+                    .replacingOccurrences(of: packageManager.packageRootUrl.path, with: "")
 
                 var include = false
                 var color: String? = nil
@@ -107,7 +108,7 @@ public class GraphVizGenerator {
                 }
 
                 if include {
-                    graphViz.addConnection(fromLabel: framework, toLabel: target, label: "@ \(filePath ?? "<unknown>")", color: color)
+                    graphViz.addConnection(fromLabel: framework, toLabel: target, label: "@ \(filePath)", color: color)
                 }
             }
         }

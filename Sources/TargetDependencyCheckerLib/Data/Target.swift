@@ -47,6 +47,8 @@ struct Target: Decodable, Hashable {
         case regular
         case test
         case executable
+        case snippets
+        case macro
     }
     
     enum CodingKeys: String, CodingKey {
